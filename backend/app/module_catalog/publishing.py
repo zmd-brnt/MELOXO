@@ -48,6 +48,8 @@ async def _load(session: AsyncSession, song_id: UUID) -> Song:
 
 async def hide_song(session: AsyncSession, actor_id: UUID, song_id: UUID, reason: str) -> SongSummary:
     song = await _load(session, song_id)
+    if not song.hidden_by_admin:
+        song.status_before_hide = song.status
     song.status = "hidden"
     song.hidden_reason = reason
     song.hidden_by_admin = True
@@ -57,11 +59,14 @@ async def hide_song(session: AsyncSession, actor_id: UUID, song_id: UUID, reason
 
 
 async def restore_song(session: AsyncSession, actor_id: UUID, song_id: UUID) -> SongSummary:
+    """Devuelve la pista a como estaba: restaurar nunca publica algo que no estuviera publicado."""
     song = await _load(session, song_id)
-    song.status = "published"
+    if not song.hidden_by_admin:
+        raise AppError(409, "not_hidden_by_admin", "Esta pista la ocultó su Compositor, no un administrador")
+    song.status = song.status_before_hide or ("published" if song.published_at else "draft")
+    song.status_before_hide = None
     song.hidden_reason = None
     song.hidden_by_admin = False
-    song.published_at = song.published_at or datetime.now(UTC)
     await session.commit()
     await record_audit(actor_id, "restore_song", "song", str(song_id))
     return to_summary(song)
@@ -69,7 +74,7 @@ async def restore_song(session: AsyncSession, actor_id: UUID, song_id: UUID) -> 
 
 async def list_all_songs(
     session: AsyncSession, params: PageParams, q: str | None, status: str | None, source: str | None
-) -> tuple[list[SongSummary], int]:
+) -> tuple[list[dict], int]:
     filters = []
     if q:
         filters.append(Song.title.ilike(f"%{q}%") | Artist.name.ilike(f"%{q}%"))
@@ -86,4 +91,5 @@ async def list_all_songs(
         .offset(params.offset)
         .limit(params.size)
     )
-    return [to_summary(s) for s in (await session.execute(query)).unique().scalars()], total or 0
+    songs = (await session.execute(query)).unique().scalars()
+    return [{**to_summary(s).__dict__, "hidden_by_admin": s.hidden_by_admin} for s in songs], total or 0

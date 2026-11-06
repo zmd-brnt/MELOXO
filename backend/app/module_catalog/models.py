@@ -65,6 +65,7 @@ class Song(Base):
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     hidden_reason: Mapped[str | None] = mapped_column(Text)
     hidden_by_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    status_before_hide: Mapped[str | None] = mapped_column(String(20))
     imported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

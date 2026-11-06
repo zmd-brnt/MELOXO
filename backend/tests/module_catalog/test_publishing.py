@@ -164,3 +164,74 @@ async def test_expired_audio_url_is_refreshed_once(client, listener, make_song):
     assert new.called
     async with session_scope() as session:
         assert await session.scalar(select(Song.audio_url).where(Song.id == song.id)) == "https://audio.example/nuevo"
+
+
+async def upload_track(client, composer, **fields):
+    r = await client.post(
+        "/api/composer/tracks",
+        data={"title": "T", "genre": "rock", "license": "CC", **fields},
+        files={"audio": ("a.mp3", mp3())},
+        headers=composer.headers,
+    )
+    return r.json()["id"]
+
+
+async def hide_and_restore(client, admin, song_id):
+    await client.post(f"/api/admin/songs/{song_id}/hide", json={"reason": "x"}, headers=admin.headers)
+    return await client.post(f"/api/admin/songs/{song_id}/restore", headers=admin.headers)
+
+
+async def song_state(song_id):
+    async with session_scope() as session:
+        song = await session.get(Song, song_id)
+        return song.status, song.publish_at, song.published_at, song.hidden_by_admin
+
+
+async def test_restore_keeps_schedule(client, admin, composer):
+    song_id = await upload_track(client, composer, publish_at=FUTURE.isoformat())
+    assert (await hide_and_restore(client, admin, song_id)).status_code == 200
+    status, publish_at, published_at, hidden_by_admin = await song_state(song_id)
+    assert (status, published_at, hidden_by_admin) == ("scheduled", None, False)
+    assert publish_at == FUTURE
+
+
+async def test_restore_keeps_draft(client, admin, composer):
+    song_id = await upload_track(client, composer)
+    await hide_and_restore(client, admin, song_id)
+    assert (await song_state(song_id))[0] == "draft"
+    assert (await song_state(song_id))[2] is None
+
+
+async def test_restore_published_keeps_date(client, admin, composer):
+    song_id = await upload_track(client, composer)
+    await client.post(f"/api/composer/tracks/{song_id}/publish", headers=composer.headers)
+    before = (await song_state(song_id))[2]
+    await hide_and_restore(client, admin, song_id)
+    assert (await song_state(song_id))[0] == "published"
+    assert (await song_state(song_id))[2] == before
+
+
+async def test_restore_refuses_track_the_composer_hid(client, admin, composer):
+    song_id = await upload_track(client, composer)
+    await client.post(f"/api/composer/tracks/{song_id}/publish", headers=composer.headers)
+    await client.post(f"/api/composer/tracks/{song_id}/hide", headers=composer.headers)
+    r = await client.post(f"/api/admin/songs/{song_id}/restore", headers=admin.headers)
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "not_hidden_by_admin"
+    assert (await song_state(song_id))[0] == "hidden"
+
+
+async def test_restore_returns_to_composer_hidden(client, admin, composer):
+    song_id = await upload_track(client, composer)
+    await client.post(f"/api/composer/tracks/{song_id}/publish", headers=composer.headers)
+    await client.post(f"/api/composer/tracks/{song_id}/hide", headers=composer.headers)
+    await hide_and_restore(client, admin, song_id)
+    status, _, _, hidden_by_admin = await song_state(song_id)
+    assert (status, hidden_by_admin) == ("hidden", False)
+
+
+async def test_admin_list_says_who_hid(client, admin, composer):
+    song_id = await upload_track(client, composer)
+    await client.post(f"/api/admin/songs/{song_id}/hide", json={"reason": "x"}, headers=admin.headers)
+    items = (await client.get("/api/admin/songs", headers=admin.headers)).json()["items"]
+    assert items[0]["hidden_by_admin"] is True
