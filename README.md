@@ -108,7 +108,8 @@ MELOXO/
 ├── compose.yaml             # los dos contenedores
 ├── compose.demo.yaml        # overlay de los escenarios 3 y 8
 ├── Dockerfile               # compila la interfaz y arma la imagen
-└── .env.example             # plantilla de variables
+├── .env.example             # plantilla de variables
+└── LICENSE                  # licencia MIT
 ```
 
 Cada carpeta tiene su README, y `backend/tests/test_readmes.py` falla si falta alguno. Las reglas de nombres y por qué
@@ -204,6 +205,16 @@ fijan las pruebas de `test_publishing.py`.
 - [`docs/specs/`](docs/specs/): el diseño de esta rama.
 - [`docs/decisions/`](docs/decisions/): lo que se decidió sobre la marcha y lo que quedó pendiente.
 - [`docs/brand/`](docs/brand/): logo, colores y tipografía.
+
+## Licencia
+
+El código es [MIT](LICENSE), con copyright del Equipo FLDSMDFR. Hay tres cosas que esa licencia no cubre:
+
+- **La marca.** El nombre MELOXO, el logo y el contenido de [`docs/brand/`](docs/brand/) no se pueden reutilizar sin
+  permiso del equipo.
+- **La música.** Las pistas de Jamendo tienen la licencia de cada artista, y la app muestra el crédito de cada una.
+- **Las dependencias.** Cada una conserva la suya. `mutagen` es GPL-2.0-or-later, así que quien distribuya la imagen de
+  Docker debe cumplir esa licencia para el conjunto. Unbounded y Caveat usan la SIL Open Font License.
 
 ## Glosario
 

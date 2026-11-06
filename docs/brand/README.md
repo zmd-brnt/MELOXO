@@ -74,6 +74,11 @@ un contenedor liso.
 | [`web/`](web/README.md) | Favicon, íconos y manifiesto para la app |
 | [`presentation/`](presentation/README.md) | Presentación de la marca con ejemplos de uso |
 
+## Licencia
+
+La licencia MIT del repositorio cubre el código, no esta carpeta. El nombre, el logo y estos archivos no se pueden
+reutilizar sin permiso del equipo.
+
 ## Pendientes
 
 - No se hizo búsqueda de registro de marca. Hacerla antes de usar el nombre o el logo fuera del ámbito universitario.

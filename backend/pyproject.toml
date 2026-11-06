@@ -3,6 +3,7 @@ name = "meloxo"
 version = "0.1.0"
 description = "MELOXO: streaming musical de casetes compartidos (monolito modular)"
 requires-python = ">=3.11"
+license = {text = "MIT"}
 dependencies = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
