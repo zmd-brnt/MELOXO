@@ -82,7 +82,7 @@ real de por medio.
 | F3.1 Evento a los 10 s | Cumple | `usePlaybackReporter.test.ts` |
 | F3.2 `playback_id` idempotente | Cumple | Escenario 4 |
 | F3.3 Métricas caídas sin cortar el audio | Parcial | El navegador reintenta. La cola real llega en la rama 04 |
-| F3.4 Evento visible en ≤ 5 s | Cumple | 1.1 s, medido una vez |
+| F3.4 Evento visible en ≤ 5 s | Cumple | 1.1 s y 2.8 s en dos mediciones |
 | F4.1 Límites de casete | Cumple | `test_tapes.py` |
 | F4.2 Enlaces de invitación | Cumple | `test_invites.py` |
 | F4.3 Reclamar dos veces es idempotente | Cumple | `test_invites.py` |
@@ -101,7 +101,7 @@ real de por medio.
 | F6.3 Bitácora paginada y filtrable | Cumple | `test_admin.py` |
 | F6.4 `/api/admin/*` da `403` | Cumple | `test_admin.py`, escenario 7 |
 | F7.1 Vista por rol | Cumple | Pruebas de `frontend/src/pages` y Playwright |
-| F7.2 Gráficas en < 2 s | Cumple | Las 12 rutas de métricas tardan 86 ms como máximo, sin carga |
+| F7.2 Gráficas en < 2 s | Cumple | Las 12 rutas de métricas tardan menos de 90 ms, sin carga |
 | F7.3 Aviso si no hay métricas | Cumple | `ChartCard.test.tsx` |
 | F7.4 Exportar a CSV y PNG | Cumple | `export.test.ts` |
 
