@@ -16,6 +16,7 @@ from app.module_catalog.public import (
     upcoming_for_artists,
 )
 from app.module_social.models import Favorite, Follow, NoticeSeen
+from app.module_social.tapes import pending_invites
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ async def list_favorites(session: AsyncSession, user: CurrentUser, params: PageP
         .offset((params.page - 1) * params.size)
     )
     ids = list((await session.execute(query)).scalars())
+    await session.commit()  # Suelta la conexión mientras catálogo abre la suya.
     songs = await get_songs(ids)
     return page_body([songs[i] for i in ids if i in songs], total, params)
 
@@ -64,7 +66,9 @@ async def unfollow(session: AsyncSession, user: CurrentUser, artist_id: UUID) ->
 async def _followed(session: AsyncSession, user: CurrentUser) -> dict:
     """Artistas seguidos y desde cuándo."""
     query = select(Follow.artist_id, Follow.created_at).where(Follow.user_id == user.id)
-    return dict((await session.execute(query)).all())
+    followed = dict((await session.execute(query)).all())
+    await session.commit()  # Suelta la conexión mientras catálogo abre la suya.
+    return followed
 
 
 async def list_follows(session: AsyncSession, user: CurrentUser) -> list[ArtistSummary]:
@@ -72,8 +76,8 @@ async def list_follows(session: AsyncSession, user: CurrentUser) -> list[ArtistS
 
 
 async def notices(session: AsyncSession, user: CurrentUser) -> dict:
-    followed = await _followed(session, user)
     seen = await session.scalar(select(NoticeSeen.seen_at).where(NoticeSeen.user_id == user.id))
+    followed = await _followed(session, user)
     items, degraded = [], False
     if followed:
         earliest = min(followed.values())
@@ -88,6 +92,8 @@ async def notices(session: AsyncSession, user: CurrentUser) -> dict:
             for r in releases
             if r.published_at > followed[r.song.artist_id]
         ]
+    invites = [{"type": "invite", **i} for i in await pending_invites(session, user)]
+    items = invites + items
     return {"unread": len(items), "items": items, "degraded": degraded}
 
 
