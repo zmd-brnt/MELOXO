@@ -81,7 +81,16 @@ function ImportPanel() {
   );
 }
 
-function SongRow({ song, onError }: { song: Song; onError: (message: string | null) => void }) {
+type AdminSong = Song & { hidden_by_admin: boolean };
+
+const STATUS: Record<string, string> = { draft: "Borrador", scheduled: "Programada", published: "Publicada", hidden: "Oculta" };
+
+function statusLabel(song: AdminSong): string {
+  if (song.status === "hidden" && !song.hidden_by_admin) return "Oculta por su Compositor";
+  return STATUS[song.status] ?? song.status;
+}
+
+function SongRow({ song, onError }: { song: AdminSong; onError: (message: string | null) => void }) {
   const client = useQueryClient();
   const [hiding, setHiding] = useState(false);
   const [reason, setReason] = useState("");
@@ -102,10 +111,10 @@ function SongRow({ song, onError }: { song: Song; onError: (message: string | nu
       <td>{song.title}</td>
       <td>{song.artist}</td>
       <td>{song.source === "jamendo" ? "Jamendo" : "Local"}</td>
-      <td>{song.status === "hidden" ? "Oculta" : song.status === "published" ? "Publicada" : song.status}</td>
+      <td>{statusLabel(song)}</td>
       <td className="cell-actions">
-        {song.status === "hidden" && <button className="ghost" type="button" onClick={() => act.mutate(true)}>Restaurar</button>}
-        {song.status !== "hidden" && !hiding && <button className="ghost" type="button" onClick={() => setHiding(true)}>Ocultar</button>}
+        {song.hidden_by_admin && <button className="ghost" type="button" onClick={() => act.mutate(true)}>Restaurar</button>}
+        {!song.hidden_by_admin && !hiding && <button className="ghost" type="button" onClick={() => setHiding(true)}>Ocultar</button>}
         {hiding && (
           <>
             <input aria-label={`Motivo para ocultar ${song.title}`} placeholder="Motivo" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
@@ -127,7 +136,7 @@ export function Catalog() {
   const [problem, setProblem] = useState<string | null>(null);
   const songs = useQuery({
     queryKey: ["admin-songs", q, source, status, page],
-    queryFn: () => api<Page<Song>>(`/api/admin/songs?${query({ q, source, status, page })}`),
+    queryFn: () => api<Page<AdminSong>>(`/api/admin/songs?${query({ q, source, status, page })}`),
     placeholderData: keepPreviousData,
   });
 
