@@ -11,3 +11,9 @@ el navegador pide primero `POST /api/songs/{id}/stream-ticket` y usa `?ticket=`.
 
 Las pistas de Jamendo pasan por proxy, sin escribir a disco, con timeout de 3 s y un reintento. Con `JAMENDO_AUDIO_MODE=redirect`
 se redirige a la URL oficial. La conexión a la base se libera antes de empezar a transmitir.
+
+## Importación de Jamendo
+
+`POST /api/admin/catalog/import` crea un job y devuelve `job_id`. El job importa por páginas, es idempotente por `jamendo_id` y
+guarda su avance, así que `POST .../{job_id}/resume` continúa donde falló. Respeta los límites con espera de 1, 2 y 4 s. El
+refresco diario solo actualiza metadatos que cambiaron.

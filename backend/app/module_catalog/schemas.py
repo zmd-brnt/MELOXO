@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, Field
+
 
 @dataclass(frozen=True)
 class SongSummary:
@@ -44,3 +46,22 @@ class UpcomingRelease:
 class ReleaseCounts:
     scheduled: int
     published: int
+
+
+class ImportIn(BaseModel):
+    genres: list[str] = Field(default_factory=list, max_length=30)
+    limit_per_genre: int = Field(default=200, ge=1, le=5000)
+    order: str = "popularity_total"
+
+
+class ImportJobOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    status: str
+    params: dict
+    offset: int
+    imported: int
+    error: str | None
+    created_at: datetime
+    finished_at: datetime | None

@@ -4,17 +4,19 @@ from fastapi import APIRouter, Depends, Header, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import CurrentUser, current_user, resolve_user
+from app.core.auth import CurrentUser, current_user, require_role, resolve_user
 from app.core.db import get_session
 from app.core.errors import AppError
 from app.core.pagination import PageParams, page_body, page_params
 from app.core.security import create_token, decode_token
-from app.module_catalog import service, streaming
-from app.module_users.public import get_auth_state
+from app.module_catalog import import_jobs, service, streaming
+from app.module_catalog.schemas import ImportIn, ImportJobOut
+from app.module_users.public import get_auth_state, record_audit
 
 router = APIRouter(prefix="/api")
 _bearer = HTTPBearer(auto_error=False)
 TICKET_SECONDS = 3600
+is_admin = require_role("admin")
 
 
 @router.get("/songs")
@@ -79,3 +81,26 @@ async def stream(
 ):
     await _authorize_stream(song_id, ticket, bearer)
     return await streaming.stream_song(song_id, range_header)
+
+
+@router.post("/admin/catalog/import", status_code=202)
+async def start_import(data: ImportIn, user: CurrentUser = Depends(is_admin)):
+    job_id = await import_jobs.create_job(user.id, data.model_dump())
+    await record_audit(user.id, "catalog_import", "import_job", str(job_id), data.model_dump())
+    import_jobs.spawn(import_jobs.run_import_job(job_id))
+    return {"job_id": job_id}
+
+
+@router.get("/admin/catalog/import", response_model=list[ImportJobOut])
+async def list_imports(_: CurrentUser = Depends(is_admin)):
+    return await import_jobs.list_jobs()
+
+
+@router.get("/admin/catalog/import/{job_id}", response_model=ImportJobOut)
+async def import_status(job_id: UUID, _: CurrentUser = Depends(is_admin)):
+    return await import_jobs.get_job(job_id)
+
+
+@router.post("/admin/catalog/import/{job_id}/resume", response_model=ImportJobOut, status_code=202)
+async def resume_import(job_id: UUID, _: CurrentUser = Depends(is_admin)):
+    return await import_jobs.resume_job(job_id)
