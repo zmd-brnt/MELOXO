@@ -9,8 +9,8 @@ from app.core.db import get_session
 from app.core.errors import AppError
 from app.core.pagination import PageParams, page_body, page_params
 from app.core.security import create_token, decode_token
-from app.module_catalog import import_jobs, service, streaming
-from app.module_catalog.schemas import ImportIn, ImportJobOut
+from app.module_catalog import import_jobs, publishing, service, streaming
+from app.module_catalog.schemas import HideIn, ImportIn, ImportJobOut
 from app.module_users.public import get_auth_state, record_audit
 
 router = APIRouter(prefix="/api")
@@ -104,3 +104,33 @@ async def import_status(job_id: UUID, _: CurrentUser = Depends(is_admin)):
 @router.post("/admin/catalog/import/{job_id}/resume", response_model=ImportJobOut, status_code=202)
 async def resume_import(job_id: UUID, _: CurrentUser = Depends(is_admin)):
     return await import_jobs.resume_job(job_id)
+
+
+@router.get("/admin/songs")
+async def admin_songs(
+    q: str | None = None,
+    status: str | None = None,
+    source: str | None = None,
+    params: PageParams = Depends(page_params),
+    _: CurrentUser = Depends(is_admin),
+    session: AsyncSession = Depends(get_session),
+):
+    items, total = await publishing.list_all_songs(session, params, q, status, source)
+    return page_body(items, total, params)
+
+
+@router.post("/admin/songs/{song_id}/hide")
+async def hide_song(
+    song_id: UUID,
+    data: HideIn,
+    user: CurrentUser = Depends(is_admin),
+    session: AsyncSession = Depends(get_session),
+):
+    return await publishing.hide_song(session, user.id, song_id, data.reason)
+
+
+@router.post("/admin/songs/{song_id}/restore")
+async def restore_song(
+    song_id: UUID, user: CurrentUser = Depends(is_admin), session: AsyncSession = Depends(get_session)
+):
+    return await publishing.restore_song(session, user.id, song_id)

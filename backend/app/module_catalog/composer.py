@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 from app.module_catalog import uploads
 from app.module_catalog.models import Album, Artist, Song
+from app.module_catalog.publishing import record_published
 from app.module_catalog.schemas import ProfileIn, TrackPatch
 from app.module_catalog.service import media_url, to_artist_summary, to_summary
 from app.module_users.public import get_display_names
@@ -161,6 +162,7 @@ async def publish_track(session: AsyncSession, user: CurrentUser, song_id: UUID)
     song.status = "published"
     song.published_at = song.published_at or datetime.now(UTC)
     song.publish_at = None
+    await record_published(session, song.id)
     await session.commit()
     return await track_out(session, song.id)
 

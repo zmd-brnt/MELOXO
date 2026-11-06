@@ -9,10 +9,12 @@ from uuid import UUID
 import anyio
 import httpx
 from fastapi.responses import RedirectResponse, Response, StreamingResponse
+from sqlalchemy import update
 
 from app.core.config import get_settings
 from app.core.db import session_scope
 from app.core.errors import AppError
+from app.module_catalog.jamendo import JamendoClient, JamendoError
 from app.module_catalog.models import Song
 
 CHUNK = 64 * 1024
@@ -49,6 +51,7 @@ class StreamTarget:
     source: str
     audio_path: str | None
     audio_url: str | None
+    jamendo_id: str | None = None
 
 
 async def load_target(song_id: UUID) -> StreamTarget:
@@ -57,7 +60,7 @@ async def load_target(song_id: UUID) -> StreamTarget:
         song = await session.get(Song, song_id)
         if song is None or song.status != "published":
             raise AppError(404, "song_not_found", "Canción no encontrada")
-        return StreamTarget(song.source, song.audio_path, song.audio_url)
+        return StreamTarget(song.source, song.audio_path, song.audio_url, song.jamendo_id)
 
 
 async def _read_file(path: Path, start: int, end: int) -> AsyncIterator[bytes]:
@@ -99,6 +102,10 @@ def _unavailable() -> AppError:
     return AppError(503, "jamendo_unavailable", "Jamendo no responde. Esta pista no se puede reproducir ahora.")
 
 
+class _ExpiredUrl(Exception):
+    pass
+
+
 async def _open_upstream(url: str, range_header: str | None) -> httpx.Response:
     client = _http_client()
     request_headers = {"Range": range_header} if range_header else {}
@@ -112,7 +119,25 @@ async def _open_upstream(url: str, range_header: str | None) -> httpx.Response:
         if response.status_code in (200, 206):
             return response
         await response.aclose()
+        if 400 <= response.status_code < 500:
+            raise _ExpiredUrl
     raise _unavailable()
+
+
+async def _fresh_audio_url(jamendo_id: str | None) -> str:
+    """La URL guardada puede caducar: se pide una nueva a la API y se guarda."""
+    if jamendo_id is None:
+        raise _unavailable()
+    try:
+        tracks = await JamendoClient().fetch_by_ids([jamendo_id])
+    except JamendoError as exc:
+        raise _unavailable() from exc
+    if not tracks or not tracks[0].audio_url:
+        raise _unavailable()
+    url = tracks[0].audio_url
+    async with session_scope() as session:
+        await session.execute(update(Song).where(Song.jamendo_id == jamendo_id).values(audio_url=url))
+    return url
 
 
 async def _relay(upstream: httpx.Response) -> AsyncIterator[bytes]:
@@ -123,12 +148,18 @@ async def _relay(upstream: httpx.Response) -> AsyncIterator[bytes]:
         await upstream.aclose()
 
 
-async def stream_jamendo(audio_url: str | None, range_header: str | None) -> Response:
+async def stream_jamendo(audio_url: str | None, jamendo_id: str | None, range_header: str | None) -> Response:
     if not audio_url:
         raise AppError(404, "audio_missing", "El audio de esta pista no está disponible")
     if get_settings().JAMENDO_AUDIO_MODE == "redirect":
         return RedirectResponse(audio_url, status_code=302)
-    upstream = await _open_upstream(audio_url, range_header)
+    try:
+        upstream = await _open_upstream(audio_url, range_header)
+    except _ExpiredUrl:
+        try:
+            upstream = await _open_upstream(await _fresh_audio_url(jamendo_id), range_header)
+        except _ExpiredUrl as exc:
+            raise _unavailable() from exc
     headers = {k: v for k, v in upstream.headers.items() if k.lower() in _FORWARDED}
     headers.setdefault("accept-ranges", "bytes")
     return StreamingResponse(_relay(upstream), status_code=upstream.status_code, headers=headers)
@@ -137,5 +168,5 @@ async def stream_jamendo(audio_url: str | None, range_header: str | None) -> Res
 async def stream_song(song_id: UUID, range_header: str | None) -> Response:
     target = await load_target(song_id)
     if target.source == "jamendo":
-        return await stream_jamendo(target.audio_url, range_header)
+        return await stream_jamendo(target.audio_url, target.jamendo_id, range_header)
     return stream_local(target.audio_path, range_header)

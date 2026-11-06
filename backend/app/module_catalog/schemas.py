@@ -79,3 +79,7 @@ class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     bio: str = Field(default="", max_length=2000)
     links: dict[str, str] = Field(default_factory=dict)
+
+
+class HideIn(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)

@@ -5,7 +5,9 @@ from uuid import UUID
 from sqlalchemy import func, select
 
 from app.core.db import session_scope
+from app.module_catalog.import_jobs import refresh_metadata
 from app.module_catalog.models import Artist, Song
+from app.module_catalog.publishing import publish_due_tracks
 from app.module_catalog.schemas import ArtistSummary, ReleaseCounts, SongSummary, UpcomingRelease
 from app.module_catalog.service import to_artist_summary, to_summary
 
@@ -17,7 +19,9 @@ __all__ = [
     "catalog_by_source",
     "get_artists",
     "get_songs",
+    "publish_due_tracks",
     "published_since",
+    "refresh_metadata",
     "release_counts",
     "song_is_playable",
     "songs_owned_by",
