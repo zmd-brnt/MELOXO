@@ -249,3 +249,10 @@ async def test_profile_link_http_saved(client, composer):
     r = await client.put("/api/composer/profile", json=body, headers=composer.headers)
     assert r.status_code == 200
     assert r.json()["links"] == {"web": "https://a.example/yo"}
+
+
+async def test_track_list_includes_album(client, composer):
+    album = await client.post("/api/composer/albums", data={"title": "Disco"}, headers=composer.headers)
+    await upload(client, composer, album_id=album.json()["id"])
+    items = (await client.get("/api/composer/tracks", headers=composer.headers)).json()
+    assert items[0]["album_id"] == album.json()["id"]

@@ -419,3 +419,21 @@ fieldset label { display: flex !important; flex-direction: row !important; align
   .tracks .song-time { margin-right: auto; margin-left: 54px; }
   .player-sheet > * { flex: none; }
 }
+
+/* Perfil de artista */
+.artist-photo {
+  display: block;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.artist-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}

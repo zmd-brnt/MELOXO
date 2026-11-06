@@ -6,7 +6,12 @@ import type { Song } from "../../api/types";
 import { Cover } from "../../components/Cover";
 import { Icon } from "../../components/Icon";
 
-type Track = Song & { publish_at: string | null; hidden_by_admin: boolean; hidden_reason: string | null };
+export type Track = Song & {
+  album_id: string | null;
+  publish_at: string | null;
+  hidden_by_admin: boolean;
+  hidden_reason: string | null;
+};
 
 const dateFormat = new Intl.DateTimeFormat("es", { dateStyle: "medium", timeStyle: "short" });
 
@@ -40,6 +45,7 @@ function Row({ track, onError }: { track: Track; onError: (message: string) => v
       {track.status === "published" && (
         <button className="ghost" type="button" disabled={act.isPending} onClick={() => act.mutate("hide")}>Ocultar</button>
       )}
+      <Link className="ghost" to={`/composer/tracks/${track.id}`} aria-label={`Editar ${track.title}`}>Editar</Link>
       {asking ? (
         <span className="confirm">
           <button className="ghost danger" type="button" onClick={() => act.mutate("delete")}>Eliminar</button>

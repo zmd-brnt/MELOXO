@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { Artist as ArtistData, Song } from "../api/types";
+import { ArtistLinks } from "../components/ArtistLinks";
 import { SongRow } from "../components/SongRow";
 import { usePlayer } from "../player/PlayerProvider";
 
@@ -24,13 +25,15 @@ export function Artist() {
 
   if (artist.isError) return <p className="form-error" role="alert">{artist.error.message}</p>;
   if (!artist.data) return <p role="status">Cargando…</p>;
-  const { name, bio, source, songs } = artist.data;
+  const { name, bio, source, songs, photo_url: photo, links } = artist.data;
 
   return (
     <>
+      {photo && <img className="artist-photo" src={photo} alt={`Foto de ${name}`} />}
       <h1 className="page-title">{name}</h1>
       <p className="muted">{source === "jamendo" ? "Artista de Jamendo" : "Compositor de MELOXO"}</p>
       {bio && <p>{bio}</p>}
+      <ArtistLinks links={links} />
       <div className="row-actions">
         <button className={isFollowing ? "ghost" : "primary"} type="button" disabled={toggle.isPending} aria-pressed={isFollowing} onClick={() => toggle.mutate()}>
           {isFollowing ? "Siguiendo" : "Seguir"}

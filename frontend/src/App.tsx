@@ -17,6 +17,7 @@ import { Artist } from "./pages/Artist";
 import { Albums } from "./pages/composer/Albums";
 import { ComposerProfile } from "./pages/composer/Profile";
 import { ComposerStats } from "./pages/composer/Stats";
+import { TrackEdit } from "./pages/composer/TrackEdit";
 import { TrackForm } from "./pages/composer/TrackForm";
 import { Tracks } from "./pages/composer/Tracks";
 import { Stats } from "./pages/Stats";
@@ -70,6 +71,7 @@ export function App() {
           <Route element={<RequireRole roles={["composer"]} />}>
             <Route path="composer" element={<Tracks />} />
             <Route path="composer/new" element={<TrackForm />} />
+            <Route path="composer/tracks/:id" element={<TrackEdit />} />
             <Route path="composer/albums" element={<Albums />} />
             <Route path="composer/profile" element={<ComposerProfile />} />
             <Route path="composer/stats" element={<ComposerStats />} />

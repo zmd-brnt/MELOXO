@@ -109,6 +109,7 @@ async def track_out(session: AsyncSession, song_id: UUID) -> dict:
     song = await session.get(Song, song_id, populate_existing=True)
     return {
         **to_summary(song).__dict__,
+        "album_id": song.album_id,
         "publish_at": song.publish_at,
         "published_at": song.published_at,
         "hidden_reason": song.hidden_reason,
