@@ -74,6 +74,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   queueRef.current = queue;
   const recoveries = useRef(0);
   const resumeAt = useRef<number | null>(null);
+  const recovering = useRef<string | null>(null);
 
   const current = Q.currentItem(queue);
 
@@ -88,11 +89,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setDuration(song.duration || 0);
       try {
         element.src = streamUrl(song.id, await requestTicket(song.id));
+      } catch {
+        element.dispatchEvent(new Event("error"));
+        return;
+      }
+      try {
         await element.play();
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         if (error instanceof DOMException && error.name === "NotAllowedError") return;
-        element.dispatchEvent(new Event("error"));
+        // Si la fuente falló, el elemento ya lanza su propio error: un segundo saltaría otra pista.
+        if (!element.error) element.dispatchEvent(new Event("error"));
       }
     },
     [reporter],
@@ -187,25 +194,31 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const onError = useCallback(async () => {
     const element = audio.current;
     const song = Q.currentItem(queueRef.current);
-    if (!element || !song) return;
-    recoveries.current += 1;
-    if (recoveries.current > MAX_RECOVERIES) {
-      setNotice("No pudimos reproducir esta pista. Pasamos a la siguiente.");
-      advance(false);
-      return;
-    }
-    const at = resumeAt.current ?? element.currentTime;
-    const result = await recoverStream({ songId: song.id, position: at, requestTicket, probe });
-    if (result.action === "resume") {
-      resumeAt.current = result.position;
-      element.src = result.src;
-      void element.play().catch(() => undefined);
-    } else if (result.action === "skip") {
-      setNotice(result.notice);
-      advance(false);
-    } else {
-      setNotice(result.notice);
-      setIsPlaying(false);
+    if (!element || !song || recovering.current === song.id) return;
+    recovering.current = song.id;
+    try {
+      recoveries.current += 1;
+      if (recoveries.current > MAX_RECOVERIES) {
+        setNotice("No pudimos reproducir esta pista. Pasamos a la siguiente.");
+        advance(false);
+        return;
+      }
+      const at = resumeAt.current ?? element.currentTime;
+      const result = await recoverStream({ songId: song.id, position: at, requestTicket, probe });
+      if (Q.currentItem(queueRef.current)?.id !== song.id) return; // Ya se pasó a otra pista.
+      if (result.action === "resume") {
+        resumeAt.current = result.position;
+        element.src = result.src;
+        void element.play().catch(() => undefined);
+      } else if (result.action === "skip") {
+        setNotice(result.notice);
+        advance(false);
+      } else {
+        setNotice(result.notice);
+        setIsPlaying(false);
+      }
+    } finally {
+      if (recovering.current === song.id) recovering.current = null;
     }
   }, [advance]);
 
