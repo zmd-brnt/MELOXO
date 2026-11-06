@@ -1,11 +1,13 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from app.core.config import get_settings
-from app.core.errors import register_error_handlers
+from app.core.errors import AppError, register_error_handlers
 from app.core.scheduler import periodic
 from app.module_analytics.latency import LatencyMiddleware, flush_latency
 from app.module_analytics.public import refresh_aggregates
@@ -56,7 +58,24 @@ def create_app() -> FastAPI:
     async def health() -> dict:
         return {"status": "ok"}
 
+    if get_settings().STATIC_DIR:
+        _serve_spa(app, Path(get_settings().STATIC_DIR).resolve())
     return app
+
+
+def _serve_spa(app: FastAPI, root: Path) -> None:
+    """Va al final: atiende lo que ninguna ruta de la API tomó."""
+
+    @app.get("/{path:path}", include_in_schema=False)
+    async def spa(path: str) -> FileResponse:
+        if path == "api" or path.startswith("api/"):
+            raise AppError(404, "not_found", "Ruta no encontrada")
+        target = (root / path).resolve()
+        if path and target.is_relative_to(root) and target.is_file():
+            return FileResponse(target)
+        if path.startswith("assets/"):
+            raise AppError(404, "not_found", "Archivo no encontrado")
+        return FileResponse(root / "index.html")
 
 
 app = create_app()
