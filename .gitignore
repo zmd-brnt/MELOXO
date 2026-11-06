@@ -1,0 +1,5 @@
+# Secretos y entorno local
+.env
+
+# Herramientas de diseño local
+.superpowers/
