@@ -1,0 +1,67 @@
+import asyncio
+import os
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+TEST_DB = "meloxo_test"
+_base = "postgresql+asyncpg://meloxo:meloxo_dev@localhost:5433"
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", f"{_base}/{TEST_DB}")
+os.environ["JWT_SECRET"] = "secreto-de-pruebas-con-longitud-suficiente-para-hs256"
+os.environ["DISABLE_SCHEDULER"] = "1"
+os.environ["MEDIA_DIR"] = tempfile.mkdtemp(prefix="meloxo-media-")
+os.environ["ADMIN_EMAIL"] = ""
+os.environ["ADMIN_PASSWORD"] = ""
+os.environ["JAMENDO_CLIENT_ID"] = "cliente-de-pruebas"
+
+import asyncpg  # noqa: E402
+import httpx  # noqa: E402
+import pytest  # noqa: E402
+from alembic import command  # noqa: E402
+from alembic.config import Config  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+
+from app.core.db import Base, get_engine, load_models  # noqa: E402
+from app.main import create_app  # noqa: E402
+
+
+async def _ensure_database():
+    conn = await asyncpg.connect(
+        host="localhost", port=5433, user="meloxo", password="meloxo_dev", database="meloxo"
+    )
+    try:
+        exists = await conn.fetchval("SELECT 1 FROM pg_database WHERE datname=$1", TEST_DB)
+        if not exists:
+            await conn.execute(f"CREATE DATABASE {TEST_DB}")
+    finally:
+        await conn.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def database():
+    asyncio.run(_ensure_database())
+    cfg = Config(str(ROOT / "alembic.ini"))
+    cfg.set_main_option("script_location", str(ROOT / "migrations"))
+    command.upgrade(cfg, "head")
+    load_models()
+
+
+@pytest.fixture(autouse=True)
+async def db_clean():
+    tables = ", ".join(f'"{t.name}"' for t in Base.metadata.sorted_tables)
+    if tables:
+        async with get_engine().begin() as conn:
+            await conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
+    yield
+
+
+@pytest.fixture
+def app():
+    return create_app()
+
+
+@pytest.fixture
+async def client(app):
+    transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
