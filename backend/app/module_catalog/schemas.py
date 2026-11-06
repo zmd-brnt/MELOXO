@@ -65,3 +65,17 @@ class ImportJobOut(BaseModel):
     error: str | None
     created_at: datetime
     finished_at: datetime | None
+
+
+class TrackPatch(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=300)
+    genre: str | None = Field(default=None, min_length=1, max_length=60)
+    license: str | None = Field(default=None, min_length=1, max_length=120)
+    album_id: UUID | None = None
+    publish_at: datetime | None = None
+
+
+class ProfileIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    bio: str = Field(default="", max_length=2000)
+    links: dict[str, str] = Field(default_factory=dict)
