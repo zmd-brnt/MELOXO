@@ -186,7 +186,7 @@ small { color: var(--mute); font-size: 12px; }
 .search:focus-within { outline: 3px solid var(--yellow); outline-offset: 2px; }
 .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--paper); }
 .search input::placeholder { color: var(--mute); }
-a.round { text-decoration: none; }
+a.round, a.primary, a.ghost { text-decoration: none; }
 .badge { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--pink); color: var(--ink); font: 700 11px/16px var(--font-ui); text-align: center; }
 .pop-down { bottom: auto; top: 44px; }
 .notices { margin: 0 0 10px; padding: 0; list-style: none; }
@@ -308,3 +308,24 @@ fieldset label { display: flex !important; flex-direction: row !important; align
 .tape-create .tape { width: 240px; }
 .tape-create .stack-form { flex: 1; min-width: 240px; }
 @media (max-width: 1500px) { .tape-sides { grid-template-columns: minmax(0, 1fr); } }
+
+/* Gráficas */
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 12px; margin-top: 10px; }
+.chart { min-width: 0; margin: 0; padding: 12px; background: var(--panel-2); border-radius: 10px; }
+.chart-tall { grid-column: 1 / -1; }
+.chart figcaption { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.chart h3 { margin: 0 0 2px; font: 700 14px/1.2 var(--font-ui); letter-spacing: 0; }
+.chart-actions { display: flex; flex: none; gap: 10px; }
+.link { padding: 2px 0; border: 0; background: none; font-size: 12px; font-weight: 600; text-decoration: underline; }
+.chart-state { display: grid; place-items: center; min-height: 160px; color: var(--mute); }
+.chart-canvas { position: relative; height: 220px; }
+.chart-tall .chart-canvas { height: 280px; }
+.chart-table { max-height: 280px; overflow: auto; }
+.chart-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.chart-table th, .chart-table td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--line); }
+.chart-table th { position: sticky; top: 0; background: var(--panel-2); }
+.stat { font: 800 34px/1 var(--font-display); }
+.upload-progress { display: flex; align-items: center; gap: 10px; width: 100%; }
+.upload-progress progress { flex: 1; accent-color: var(--yellow); height: 10px; }
+.stack-form select { min-height: 40px; padding: 8px 10px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 10px; font-weight: 400; }
+.plain-list li { padding: 7px 4px; font-weight: 600; }

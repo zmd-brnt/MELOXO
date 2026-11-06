@@ -1,11 +1,17 @@
 import { Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
+import { RequireRole } from "./auth/RequireRole";
 import { AddSongProvider } from "./components/AddSong";
 import { AppShell } from "./components/AppShell";
 import { NoticesBell } from "./components/NoticesBell";
 import { SearchBox } from "./components/SearchBox";
 import { Sidebar } from "./components/Sidebar";
 import { Artist } from "./pages/Artist";
+import { Albums } from "./pages/composer/Albums";
+import { ComposerProfile } from "./pages/composer/Profile";
+import { ComposerStats } from "./pages/composer/Stats";
+import { TrackForm } from "./pages/composer/TrackForm";
+import { Tracks } from "./pages/composer/Tracks";
 import { Favorites } from "./pages/Favorites";
 import { History } from "./pages/History";
 import { Home } from "./pages/Home";
@@ -53,6 +59,13 @@ export function App() {
           <Route path="tapes/new" element={<TapeCreate />} />
           <Route path="tapes/:id" element={<TapeDetail />} />
           <Route path="invite/:token" element={<TapeInvite />} />
+          <Route element={<RequireRole roles={["composer"]} />}>
+            <Route path="composer" element={<Tracks />} />
+            <Route path="composer/new" element={<TrackForm />} />
+            <Route path="composer/albums" element={<Albums />} />
+            <Route path="composer/profile" element={<ComposerProfile />} />
+            <Route path="composer/stats" element={<ComposerStats />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

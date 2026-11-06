@@ -33,7 +33,7 @@ async def duplicates_discarded() -> int:
         return await session.scalar(select(PlaybackCounter.value).where(PlaybackCounter.key == DUPLICATES)) or 0
 
 
-async def retention_for_songs(song_ids: list[UUID], durations: dict[UUID, int]) -> RetentionStats:
+async def retention_for_songs(song_ids: list[UUID], durations: dict[UUID, float]) -> RetentionStats:
     """Cuántas reproducciones llegan a 10 s, a la mitad y al final. Una pista sin duración solo cuenta en 10 s."""
     if not song_ids:
         return RetentionStats(0, 0, 0)
@@ -50,5 +50,6 @@ async def retention_for_songs(song_ids: list[UUID], durations: dict[UUID, int]) 
         at_10s += plays if listened >= 10 else 0
         if duration > 0:
             at_50 += plays if listened * 2 >= duration else 0
-            at_100 += plays if listened >= duration else 0
+            # El progreso va en segundos enteros: 40 s ya es el final de una pista de 40.05 s.
+            at_100 += plays if listened >= int(duration) else 0
     return RetentionStats(at_10s, at_50, at_100)

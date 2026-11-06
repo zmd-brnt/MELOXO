@@ -109,3 +109,37 @@ export async function api<T = unknown>(path: string, options: Options = {}): Pro
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
+
+/** `fetch` no informa el avance de una subida, por eso esta ruta usa XMLHttpRequest. */
+export async function upload<T>(path: string, form: FormData, onProgress?: (fraction: number) => void): Promise<T> {
+  await api("/api/users/me"); // Renueva el token antes de una petición que puede tardar.
+  return new Promise<T>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("POST", path);
+    if (accessToken) request.setRequestHeader("authorization", `Bearer ${accessToken}`);
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded / event.total);
+    };
+    request.onerror = () => reject(new ApiError(0, "network_error", "Se perdió la conexión durante la subida."));
+    request.onload = () => {
+      const body = (() => {
+        try {
+          return JSON.parse(request.responseText);
+        } catch {
+          return null;
+        }
+      })();
+      if (request.status >= 200 && request.status < 300) resolve(body as T);
+      else {
+        reject(
+          new ApiError(
+            request.status,
+            body?.error?.code ?? "unknown_error",
+            body?.error?.message ?? "No se pudo subir el archivo.",
+          ),
+        );
+      }
+    };
+    request.send(form);
+  });
+}

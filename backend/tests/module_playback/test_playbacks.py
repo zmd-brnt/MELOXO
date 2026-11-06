@@ -130,6 +130,15 @@ async def test_retention_counts_thresholds(client, listener, make_song):
     assert (stats.at_10s, stats.at_50, stats.at_100) == (3, 2, 1)
 
 
+async def test_retention_counts_end_with_fractional_duration(client, listener, make_song):
+    """El progreso se guarda en segundos enteros y la duración real de un MP3 casi nunca lo es."""
+    song = await make_song()
+    for seconds in (39, 40):
+        await post_play(client, listener, str(uuid4()), song, seconds=seconds)
+    stats = await public.retention_for_songs([song.id], {song.id: 40.05})
+    assert stats.at_100 == 1
+
+
 async def test_retention_empty_without_songs():
     stats = await public.retention_for_songs([], {})
     assert (stats.at_10s, stats.at_50, stats.at_100) == (0, 0, 0)
