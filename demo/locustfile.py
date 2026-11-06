@@ -9,6 +9,7 @@ from locust import HttpUser, between, task
 
 DOMAIN = "escenarios.meloxo.dev"
 PLAYLIST_SONGS = 20
+CHUNK_BYTES = 64 * 1024
 WORDS = ["rock", "love", "night", "demo", "sol", "blue"]
 
 
@@ -47,6 +48,8 @@ class Listener(HttpUser):
         ticket = self.client.post(f"{path}/stream-ticket", name="POST stream-ticket").json()["ticket"]
         headers = {"Range": "bytes=0-"}
         url = f"{path}/stream?ticket={ticket}"
-        self.client.get(url, headers=headers, stream=True, name="primer byte").close()
+        response = self.client.get(url, headers=headers, stream=True, name="primer byte")
+        for _ in response.iter_content(CHUNK_BYTES):  # el servidor transmite la pista entera, como con un oyente real
+            pass
         body = {"playback_id": str(uuid.uuid4()), "song_id": song, "listened_seconds": 30}
         self.client.post("/api/playbacks", json=body, name="POST /api/playbacks")
