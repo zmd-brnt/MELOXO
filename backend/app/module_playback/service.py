@@ -69,6 +69,7 @@ async def history(session: AsyncSession, user: CurrentUser, params: PageParams) 
         .offset((params.page - 1) * params.size)
     )
     rows = list((await session.execute(query)).scalars())
+    await session.commit()  # Suelta la conexión mientras catálogo abre la suya.
     songs = await get_songs(list({r.song_id for r in rows}))
     items = [
         {

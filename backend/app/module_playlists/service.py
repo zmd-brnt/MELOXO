@@ -96,6 +96,7 @@ async def detail(session: AsyncSession, user: CurrentUser, playlist_id: UUID) ->
         raise AppError(403, "forbidden", "Esta playlist es privada")
     query = select(PlaylistSong).where(PlaylistSong.playlist_id == playlist_id).order_by(PlaylistSong.position)
     rows = list((await session.execute(query)).scalars())
+    await session.commit()  # Suelta la conexión mientras catálogo abre la suya.
     degraded = False
     songs = {}
     try:
