@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import session_scope
 from app.core.errors import AppError
@@ -15,6 +16,7 @@ from app.module_catalog.models import Album, Artist, ImportJob, Song
 
 log = logging.getLogger(__name__)
 BACKOFF_SECONDS = (1, 2, 4)
+UPSERT_ROWS = 500  # PostgreSQL admite 32767 parámetros por sentencia y cada fila usa 19
 EMPTY_ATTEMPTS = 6
 EMPTY_WAIT_SECONDS = 1
 STALE_AFTER = timedelta(minutes=10)
@@ -104,32 +106,37 @@ def _song_values(track: JamendoTrack) -> dict:
     }
 
 
+async def _upsert_batch(session: AsyncSession, tracks: list[JamendoTrack], now: datetime) -> None:
+    artists = await _upsert_artists(session, tracks)
+    albums = await _upsert_albums(session, tracks, artists)
+    rows = [
+        {
+            **_song_values(t),
+            "jamendo_id": t.jamendo_id,
+            "artist_id": artists[t.artist_id],
+            "album_id": albums.get(t.album_id),
+            "source": "jamendo",
+            "status": "published",
+            "published_at": now,
+            "imported_at": now,
+        }
+        for t in tracks
+    ]
+    statement = insert(Song).values(rows)
+    statement = statement.on_conflict_do_update(
+        index_elements=["jamendo_id"], set_={name: statement.excluded[name] for name in METADATA_FIELDS}
+    )
+    await session.execute(statement)
+
+
 async def upsert_tracks(tracks: list[JamendoTrack]) -> None:
     if not tracks:
         return
     unique = list({t.jamendo_id: t for t in tracks}.values())
     now = datetime.now(UTC)
     async with session_scope() as session:
-        artists = await _upsert_artists(session, unique)
-        albums = await _upsert_albums(session, unique, artists)
-        rows = [
-            {
-                **_song_values(t),
-                "jamendo_id": t.jamendo_id,
-                "artist_id": artists[t.artist_id],
-                "album_id": albums.get(t.album_id),
-                "source": "jamendo",
-                "status": "published",
-                "published_at": now,
-                "imported_at": now,
-            }
-            for t in unique
-        ]
-        statement = insert(Song).values(rows)
-        statement = statement.on_conflict_do_update(
-            index_elements=["jamendo_id"], set_={name: statement.excluded[name] for name in METADATA_FIELDS}
-        )
-        await session.execute(statement)
+        for start in range(0, len(unique), UPSERT_ROWS):
+            await _upsert_batch(session, unique[start : start + UPSERT_ROWS], now)
 
 
 async def _save(job_id: UUID, **values) -> None:

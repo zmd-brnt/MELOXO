@@ -7,7 +7,8 @@ from sqlalchemy import func, select
 
 from app.core.db import session_scope
 from app.module_catalog import import_jobs
-from app.module_catalog.import_jobs import create_job, get_job, refresh_metadata, run_import_job
+from app.module_catalog.import_jobs import create_job, get_job, refresh_metadata, run_import_job, upsert_tracks
+from app.module_catalog.jamendo import to_track
 from app.module_catalog.models import Artist, Song
 
 API = "https://api.jamendo.com/v3.0/tracks/"
@@ -267,3 +268,10 @@ async def test_genre_without_tracks_ends_after_retries():
     await run_import_job(job_id)
     assert (await get_job(job_id)).status == "done"
     assert route.call_count == import_jobs.EMPTY_ATTEMPTS
+
+
+async def test_upsert_more_rows_than_postgres_allows_in_one_statement():
+    """Jamendo cambia audio_url en cada consulta: el refresco diario reescribe todo el catálogo."""
+    await upsert_tracks([to_track(track(i)) for i in range(1, 1801)])
+    async with session_scope() as session:
+        assert await session.scalar(select(func.count()).select_from(Song)) == 1800
