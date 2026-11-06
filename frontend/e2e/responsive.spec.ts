@@ -42,6 +42,18 @@ test("a 390 px las vistas de Compositor no desbordan", async ({ page }) => {
   }
 });
 
+test("a 390 px el Compositor lee sus títulos y edita una pista", async ({ page }) => {
+  await signIn(page, state().composer);
+  await page.goto("/composer");
+  const title = page.locator(".song-text b").first();
+  await expect(title).toBeVisible();
+  const cut = await title.evaluate((element) => element.scrollWidth > element.clientWidth);
+  expect(cut).toBe(false);
+  await page.getByRole("link", { name: /^Editar / }).first().click();
+  await expect(page.getByRole("heading", { name: "Editar pista" })).toBeVisible();
+  await noSideScroll(page, new URL(page.url()).pathname);
+});
+
 test("a 390 px siguen disponibles aleatorio, repetir, favorita y cola", async ({ page }) => {
   const { listener, songTitle } = state();
   await signIn(page, listener);

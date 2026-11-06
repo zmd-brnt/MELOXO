@@ -74,7 +74,7 @@ export function Tracks() {
       </div>
       {problem && <p className="form-error" role="alert">{problem}</p>}
       {tracks.isSuccess && !tracks.data.length && <p className="muted">Aún no subes pistas. Empieza con la primera.</p>}
-      <ul className="songs">
+      <ul className="songs manage">
         {tracks.data?.map((track) => <Row key={track.id} track={track} onError={setProblem} />)}
       </ul>
     </>

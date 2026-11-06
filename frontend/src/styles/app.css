@@ -414,8 +414,8 @@ fieldset label { display: flex !important; flex-direction: row !important; align
   .data select { min-height: 44px; }
 
   /* Pista de casete: el título ocupa su línea y las acciones bajan a la siguiente */
-  .tracks .song { flex-wrap: wrap; }
-  .tracks .song-text { flex-basis: calc(100% - 64px); }
+  .tracks .song, .manage .song { flex-wrap: wrap; }
+  .tracks .song-text, .manage .song-text { flex-basis: calc(100% - 64px); }
   .tracks .song-time { margin-right: auto; margin-left: 54px; }
   .player-sheet > * { flex: none; }
 }
