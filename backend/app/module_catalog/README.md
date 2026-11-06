@@ -20,14 +20,16 @@ refresco diario solo actualiza metadatos que cambiaron.
 
 ## Subidas
 
-Solo MP3 de hasta 15 MB y portadas JPG o PNG de hasta 2 MB, comprobados por contenido. El archivo se escribe primero en
+Solo MP3 de hasta 15 MB y portadas JPG o PNG de hasta 2 MB. El MP3 se comprueba leyendo el archivo; la portada, solo por
+sus primeros bytes. El archivo se escribe primero en
 `tmp/`, se valida y se mueve con un nombre UUID. Las portadas son públicas en `/api/media/covers/...`; el audio nunca se sirve
 por esa ruta. Cuota: 20 pistas por Compositor.
 
 ## Publicación programada
 
 Cada 30 s, `publish_due_tracks` publica lo vencido con `FOR UPDATE SKIP LOCKED`, así dos procesos no publican la misma pista.
-`published_events` es el registro único de `track_published`.
+`published_events` es el registro único de `track_published`. Ocultar y restaurar no lo tocan: un administrador devuelve
+la pista al estado que tenía, guardado en `status_before_hide`, y solo restaura lo que ocultó un administrador.
 
 Si la URL de audio guardada responde con error 4xx, se pide una nueva a Jamendo, se guarda y se reintenta una vez. Así no
 importa si el parámetro `from` de esas URLs caduca.

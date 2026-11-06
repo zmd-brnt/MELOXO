@@ -6,9 +6,10 @@ el backend.
 | Archivo | Ruta | Para qué sirve |
 |---|---|---|
 | `Tracks.tsx` | `/composer` | Lista de pistas con su estado, publicar, ocultar y eliminar |
+| `TrackEdit.tsx` | `/composer/tracks/:id` | Editar los datos de una pista y reprogramarla |
 | `TrackForm.tsx` | `/composer/new` | Subir una pista, con validación previa y progreso |
 | `Albums.tsx` | `/composer/albums` | Crear y ver álbumes y EP |
-| `Profile.tsx` | `/composer/profile` | Editar el perfil de artista |
+| `Profile.tsx` | `/composer/profile` | Nombre artístico, biografía, foto y enlaces |
 | `Stats.tsx` | `/composer/stats` | Reproducciones, retención, lanzamientos y conteo de inclusiones |
 | `Request.tsx` | Dentro de `/profile` | Solicitud de un Oyente para ser Compositor |
 

@@ -48,6 +48,8 @@ Cada módulo es dueño de sus tablas, no hay llaves foráneas entre módulos y s
 
 ## Pruebas
 
+Las pruebas de backend leen `POSTGRES_PASSWORD` de `.env`, así que hace falta ese archivo.
+
 ```bash
 docker compose up -d postgres
 cd backend && python3 -m venv .venv && .venv/bin/pip install -e '.[dev]' && .venv/bin/pytest   # PostgreSQL real
@@ -60,8 +62,8 @@ La prueba de carga se explica en [`demo/`](demo/).
 
 ## Estado de los criterios
 
-Verificado el 2026-11-06 desde cero, con `docker compose down -v`, reconstrucción y semilla: 386 pruebas de backend,
-106 de frontend, 14 de navegador y los escenarios 3 a 8 en verde. Las mediciones son de `docker compose` local, sin red
+Verificado el 2026-11-06 desde cero, con `docker compose down -v`, reconstrucción y semilla: 408 pruebas de backend,
+127 de frontend, 15 de navegador y los escenarios 3 a 8 en verde. Las mediciones son de `docker compose` local, sin red
 real de por medio.
 
 | Criterio | Estado | Evidencia |
@@ -69,12 +71,12 @@ real de por medio.
 | F1.1 Registro y login con JWT | Cumple | `test_auth.py` |
 | F1.2 Lista ligada al usuario del token | Cumple | `test_playlists.py` |
 | F1.3 Reagregar es idempotente | Cumple | `test_playlists.py` |
-| F1.4 `GET /api/playlists/{id}` p95 < 200 ms | Cumple | 63 ms con 50 clientes |
+| F1.4 `GET /api/playlists/{id}` p95 < 200 ms | Cumple | 66 ms con 50 clientes |
 | F1.5 Lista degradada | Cumple | `test_playlists.py`. Solo se activa si falla la interfaz de catálogo |
 | F1.6 Lista ajena privada da `403` | Cumple | `test_playlists.py` |
 | F2.1 Búsqueda con filtros | Cumple | `test_songs.py` |
 | F2.2 `Range` y `206`, local y Jamendo | Cumple | `test_streaming.py` y 3 pistas contra Jamendo real |
-| F2.3 Primer byte p95 < 500 ms, búsqueda p95 < 300 ms | Cumple | 41 ms y 75 ms, solo pistas locales |
+| F2.3 Primer byte p95 < 500 ms, búsqueda p95 < 300 ms | Cumple | 39 ms y 71 ms, solo pistas locales |
 | F2.4 Failover de réplicas | Rama 03 | Hay una sola instancia |
 | F2.5 Jamendo caído | Cumple | Escenario 3 |
 | F3.1 Evento a los 10 s | Cumple | `usePlaybackReporter.test.ts` |
@@ -89,7 +91,7 @@ real de por medio.
 | F4.6 Permisos de miembro y creador | Cumple | `test_tapes.py`, `test_invites.py` |
 | F4.7 Sala de escucha (opcional) | Fuera | Decisión del equipo, sin rama asignada |
 | F5.1 Solicitud de Compositor | Cumple | `test_composer_requests.py` |
-| F5.2 Subida validada por contenido | Cumple | `test_composer.py` |
+| F5.2 Subida validada por contenido | Cumple | `test_composer.py`. La portada se comprueba solo por sus primeros bytes |
 | F5.3 Estados de pista | Cumple | `test_composer.py` |
 | F5.4 Publicación programada y avisos | Cumple | `test_publishing.py`, escenario 8. La tarea corre cada 30 s |
 | F5.5 Pistas ajenas dan `403` | Cumple | Escenario 7 |

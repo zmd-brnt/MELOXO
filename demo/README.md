@@ -58,13 +58,13 @@ reproduce pistas locales. El primer byte es el tiempo hasta recibir los encabeza
 
 ### Resultado
 
-Corrida del 2026-11-06 sobre un stack recién reconstruido: 50 clientes durante 2 minutos, 5484 peticiones, 0 fallos.
+Corrida del 2026-11-06 sobre un stack recién reconstruido: 50 clientes durante 2 minutos, 5576 peticiones, 0 fallos.
 
 | Medida | p50 | p95 | Objetivo p95 |
 | --- | --- | --- | --- |
-| Primer byte de audio | 13 ms | 41 ms | < 500 ms |
-| `GET /api/songs` | 37 ms | 75 ms | < 300 ms |
-| `GET /api/playlists/{id}` | 28 ms | 63 ms | < 200 ms |
+| Primer byte de audio | 12 ms | 39 ms | < 500 ms |
+| `GET /api/songs` | 36 ms | 71 ms | < 300 ms |
+| `GET /api/playlists/{id}` | 27 ms | 66 ms | < 200 ms |
 
 Máquina: laptop Intel i7-1165G7, 8 hilos, 15 GB de RAM, Linux. Locust, la app (un proceso de uvicorn) y PostgreSQL
 corrieron en la misma máquina, así que el resultado no incluye la latencia de una red real. Jamendo quedó fuera de la
@@ -73,7 +73,7 @@ carga.
 Hay dos límites que conviene decir al presentar esto:
 
 - Los clientes descargan cada pista a toda velocidad y luego esperan de 1 a 3 s. No hay 50 conexiones de audio abiertas
-  todo el tiempo, y el ritmo total fue de 46 peticiones por segundo. Las pistas de la semilla pesan unos 480 KB.
+  todo el tiempo, y el ritmo total fue de 47 peticiones por segundo. Las pistas de la semilla pesan unos 480 KB.
 - La preparación ocupa cerca de los primeros 45 s: los clientes se registran y agregan 20 pistas sin pausa, y las
   peticiones de esa fase son más lentas. Las cifras de arriba la incluyen, porque Locust acumula los percentiles, y por
-  eso esta corrida no separa los p99 (290 a 500 ms) por fase.
+  eso esta corrida no separa los p99 (240 a 390 ms) por fase.
