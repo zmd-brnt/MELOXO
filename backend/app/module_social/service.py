@@ -51,6 +51,10 @@ async def list_favorites(session: AsyncSession, user: CurrentUser, params: PageP
     return page_body([songs[i] for i in ids if i in songs], total, params)
 
 
+async def favorite_ids(session: AsyncSession, user: CurrentUser) -> list[UUID]:
+    return list((await session.execute(select(Favorite.song_id).where(Favorite.user_id == user.id))).scalars())
+
+
 async def follow(session: AsyncSession, user: CurrentUser, artist_id: UUID) -> None:
     if artist_id not in await get_artists([artist_id]):
         raise AppError(404, "artist_not_found", "Artista no encontrado")
@@ -63,7 +67,7 @@ async def unfollow(session: AsyncSession, user: CurrentUser, artist_id: UUID) ->
     await session.commit()
 
 
-async def _followed(session: AsyncSession, user: CurrentUser) -> dict:
+async def followed_artists(session: AsyncSession, user: CurrentUser) -> dict:
     """Artistas seguidos y desde cuándo."""
     query = select(Follow.artist_id, Follow.created_at).where(Follow.user_id == user.id)
     followed = dict((await session.execute(query)).all())
@@ -72,12 +76,12 @@ async def _followed(session: AsyncSession, user: CurrentUser) -> dict:
 
 
 async def list_follows(session: AsyncSession, user: CurrentUser) -> list[ArtistSummary]:
-    return list((await get_artists(list(await _followed(session, user)))).values())
+    return list((await get_artists(list(await followed_artists(session, user)))).values())
 
 
 async def notices(session: AsyncSession, user: CurrentUser) -> dict:
     seen = await session.scalar(select(NoticeSeen.seen_at).where(NoticeSeen.user_id == user.id))
-    followed = await _followed(session, user)
+    followed = await followed_artists(session, user)
     items, degraded = [], False
     if followed:
         earliest = min(followed.values())
@@ -106,7 +110,7 @@ async def mark_seen(session: AsyncSession, user: CurrentUser) -> None:
 
 
 async def releases(session: AsyncSession, user: CurrentUser) -> dict:
-    followed = list(await _followed(session, user))
+    followed = list(await followed_artists(session, user))
     try:
         scheduled = await upcoming_for_artists(followed)
         published = (await published_since(followed, None))[:RECENT_RELEASES]

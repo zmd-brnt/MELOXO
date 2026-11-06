@@ -154,3 +154,17 @@ async def test_releases_list_recent_published(client, listener, composer, make_s
     await follow(client, listener, song.artist_id)
     body = (await client.get("/api/releases", headers=listener.headers)).json()
     assert [i["song"]["id"] for i in body["published"]] == [str(song.id)]
+
+
+async def test_favorite_ids(client, listener, make_song):
+    song = await make_song()
+    await client.put(f"/api/favorites/{song.id}", headers=listener.headers)
+    r = await client.get("/api/favorites/ids", headers=listener.headers)
+    assert r.json() == [str(song.id)]
+
+
+async def test_followed_ids(client, listener, make_song):
+    song = await make_song()
+    await follow(client, listener, song.artist_id)
+    r = await client.get("/api/follows/ids", headers=listener.headers)
+    assert r.json() == [str(song.artist_id)]

@@ -36,6 +36,16 @@ async def favorites(
     return await service.list_favorites(session, user, params)
 
 
+@router.get("/favorites/ids")
+async def favorite_ids(user: CurrentUser = Depends(current_user), session: AsyncSession = Depends(get_session)):
+    return await service.favorite_ids(session, user)
+
+
+@router.get("/follows/ids")
+async def followed_ids(user: CurrentUser = Depends(current_user), session: AsyncSession = Depends(get_session)):
+    return list(await service.followed_artists(session, user))
+
+
 @router.put("/follows/{artist_id}", status_code=204)
 async def follow(
     artist_id: UUID, user: CurrentUser = Depends(current_user), session: AsyncSession = Depends(get_session)

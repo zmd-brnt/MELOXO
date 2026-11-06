@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
 import { AuthProvider } from "./auth/AuthContext";
+import { PlayerProvider } from "./player/PlayerProvider";
 import "./styles/tokens.css";
 import "./styles/app.css";
 
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queries}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <PlayerProvider>
+            <App />
+          </PlayerProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
