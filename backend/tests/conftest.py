@@ -19,11 +19,17 @@ import httpx  # noqa: E402
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
-from sqlalchemy import text  # noqa: E402
+from sqlalchemy import select, text  # noqa: E402
 
-from app.core.db import Base, get_engine, load_models  # noqa: E402
+from argon2 import PasswordHasher  # noqa: E402
+
+from app.core import security  # noqa: E402
+from app.core.db import Base, get_engine, load_models, session_scope  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.module_users.service import login_limiter  # noqa: E402
+
+
+security._hasher = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)  # hash barato solo en pruebas
 
 
 async def _ensure_database():
@@ -113,3 +119,46 @@ async def composer(make_user):
 @pytest.fixture
 async def admin(make_user):
     return await make_user(role="admin")
+
+
+@pytest.fixture
+def make_song():
+    from app.module_catalog.models import Album, Artist, Song
+
+    async def _make(
+        title="Luz de carretera",
+        artist="Marea Baja",
+        album="Noches",
+        source="local",
+        status="published",
+        genres=("rock",),
+        tags=("guitarra",),
+        owner=None,
+        **kw,
+    ):
+        async with session_scope() as session:
+            found = (await session.execute(select(Artist).where(Artist.name == artist))).scalar_one_or_none()
+            if found is None:
+                found = Artist(name=artist, source=source, owner_user_id=owner)
+                session.add(found)
+                await session.flush()
+            record = Album(title=album, artist_id=found.id)
+            session.add(record)
+            await session.flush()
+            song = Song(
+                title=title,
+                artist_id=found.id,
+                album_id=record.id,
+                duration=kw.pop("duration", 180),
+                genres=list(genres),
+                tags=list(tags),
+                source=source,
+                license=kw.pop("license", "CC BY-NC-SA"),
+                status=status,
+                **kw,
+            )
+            session.add(song)
+            await session.flush()
+            return song
+
+    return _make
