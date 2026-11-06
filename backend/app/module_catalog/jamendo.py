@@ -80,7 +80,10 @@ class JamendoClient:
             raise JamendoError(f"No se pudo contactar a Jamendo: {exc}") from exc
         if response.status_code != 200:
             raise JamendoError(f"Jamendo respondió {response.status_code}")
-        body = response.json()
+        try:
+            body = response.json()
+        except ValueError as exc:
+            raise JamendoError("Jamendo no respondió con JSON") from exc
         headers = body.get("headers") or {}
         if headers.get("status") != "success":
             raise JamendoError(f"Jamendo rechazó la petición: {headers.get('error_message')}", retryable=False)

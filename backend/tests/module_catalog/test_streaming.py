@@ -32,9 +32,14 @@ def stream(client, song, user, headers=None):
     return client.get(f"/api/songs/{song.id}/stream", headers={**user.headers, **(headers or {})})
 
 
+HUGE = "9" * 5000
+
+
 @pytest.mark.parametrize(
     "header,size,expected",
     [
+        (f"bytes=-{HUGE}", 1000, (0, 999)),
+        (f"bytes=0-{HUGE}", 1000, (0, 999)),
         ("bytes=0-99", 1000, (0, 99)),
         ("bytes=500-", 1000, (500, 999)),
         ("bytes=-100", 1000, (900, 999)),
@@ -179,3 +184,30 @@ async def test_hidden_song_not_streamable(client, listener, make_song):
     assert r.status_code == 404
 
 
+
+
+async def test_local_huge_range_start_416(client, listener, local_song):
+    r = await stream(client, local_song, listener, {"Range": f"bytes={HUGE}-"})
+    assert r.status_code == 416
+
+
+@respx.mock
+async def test_jamendo_416_passes_through_without_renewing(client, listener, jamendo_song):
+    audio = respx.get(JAMENDO_URL).mock(return_value=httpx.Response(416))
+    api = respx.get(url__startswith="https://api.jamendo.com/").mock(return_value=httpx.Response(500))
+    r = await stream(client, jamendo_song, listener, {"Range": "bytes=999999-"})
+    assert r.status_code == 416
+    assert r.json()["error"]["code"] == "range_not_satisfiable"
+    assert audio.call_count == 1
+    assert api.call_count == 0
+
+
+@respx.mock
+async def test_jamendo_api_html_is_503(client, listener, jamendo_song):
+    respx.get(JAMENDO_URL).mock(return_value=httpx.Response(403))
+    respx.get(url__startswith="https://api.jamendo.com/").mock(
+        return_value=httpx.Response(200, text="<html>mantenimiento</html>")
+    )
+    r = await stream(client, jamendo_song, listener)
+    assert r.status_code == 503
+    assert r.json()["error"]["code"] == "jamendo_unavailable"

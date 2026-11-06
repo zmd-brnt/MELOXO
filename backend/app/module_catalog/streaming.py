@@ -1,5 +1,6 @@
 """Entrega de audio con Range: archivo local o proxy hacia Jamendo, sin escribir a disco."""
 import re
+import sys
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from functools import lru_cache
@@ -19,6 +20,7 @@ from app.module_catalog.models import Song
 
 CHUNK = 64 * 1024
 JAMENDO_TIMEOUT = 3.0
+MAX_RANGE_DIGITS = 18
 JAMENDO_ATTEMPTS = 2
 _RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 _FORWARDED = ("content-type", "content-length", "content-range", "accept-ranges")
@@ -28,6 +30,11 @@ def _not_satisfiable(size: int) -> AppError:
     return AppError(416, "range_not_satisfiable", "Rango no válido", {"size": size})
 
 
+def _position(digits: str) -> int:
+    """int() rechaza textos de miles de dígitos. Un número así queda más allá de cualquier archivo."""
+    return sys.maxsize if len(digits) > MAX_RANGE_DIGITS else int(digits)
+
+
 def parse_range(header: str | None, size: int) -> tuple[int, int] | None:
     if header is None:
         return None
@@ -35,12 +42,12 @@ def parse_range(header: str | None, size: int) -> tuple[int, int] | None:
     if match is None or not (match[1] or match[2]):
         raise _not_satisfiable(size)
     if not match[1]:
-        suffix = int(match[2])
+        suffix = _position(match[2])
         if suffix == 0:
             raise _not_satisfiable(size)
         return max(size - suffix, 0), size - 1
-    start = int(match[1])
-    end = int(match[2]) if match[2] else size - 1
+    start = _position(match[1])
+    end = _position(match[2]) if match[2] else size - 1
     if start >= size or end < start:
         raise _not_satisfiable(size)
     return start, min(end, size - 1)
@@ -119,6 +126,8 @@ async def _open_upstream(url: str, range_header: str | None) -> httpx.Response:
         if response.status_code in (200, 206):
             return response
         await response.aclose()
+        if response.status_code == 416:
+            raise AppError(416, "range_not_satisfiable", "Rango no válido")
         if 400 <= response.status_code < 500:
             raise _ExpiredUrl
     raise _unavailable()
