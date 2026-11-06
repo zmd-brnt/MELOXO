@@ -12,6 +12,7 @@ from app.module_catalog.composer_routes import router as composer_router
 from app.module_catalog.routes import router as catalog_router
 from app.module_playback.routes import router as playback_router
 from app.module_playlists.routes import router as playlists_router
+from app.module_social.routes import router as social_router
 from app.module_users.public import ensure_first_admin
 from app.module_users.routes import router as users_router
 
@@ -40,6 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(composer_router)
     app.include_router(playlists_router)
     app.include_router(playback_router)
+    app.include_router(social_router)
 
     @app.get("/api/health")
     async def health() -> dict:

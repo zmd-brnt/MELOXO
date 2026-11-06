@@ -43,6 +43,12 @@ class UpcomingRelease:
 
 
 @dataclass(frozen=True)
+class PublishedRelease:
+    song: SongSummary
+    published_at: datetime
+
+
+@dataclass(frozen=True)
 class ReleaseCounts:
     scheduled: int
     published: int

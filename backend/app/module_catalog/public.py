@@ -8,11 +8,12 @@ from app.core.db import session_scope
 from app.module_catalog.import_jobs import refresh_metadata
 from app.module_catalog.models import Artist, Song
 from app.module_catalog.publishing import publish_due_tracks
-from app.module_catalog.schemas import ArtistSummary, ReleaseCounts, SongSummary, UpcomingRelease
+from app.module_catalog.schemas import ArtistSummary, PublishedRelease, ReleaseCounts, SongSummary, UpcomingRelease
 from app.module_catalog.service import to_artist_summary, to_summary
 
 __all__ = [
     "ArtistSummary",
+    "PublishedRelease",
     "ReleaseCounts",
     "SongSummary",
     "UpcomingRelease",
@@ -64,7 +65,7 @@ async def upcoming_for_artists(artist_ids: list[UUID]) -> list[UpcomingRelease]:
         return [UpcomingRelease(s.id, s.title, s.artist_id, s.artist.name, s.publish_at) for s in rows]
 
 
-async def published_since(artist_ids: list[UUID], since: datetime | None) -> list[SongSummary]:
+async def published_since(artist_ids: list[UUID], since: datetime | None) -> list[PublishedRelease]:
     """Publicaciones de Compositores. Las importaciones de Jamendo no generan avisos."""
     if not artist_ids:
         return []
@@ -73,7 +74,8 @@ async def published_since(artist_ids: list[UUID], since: datetime | None) -> lis
         filters.append(Song.published_at > since)
     query = select(Song).where(*filters).order_by(Song.published_at.desc()).limit(50)
     async with session_scope() as session:
-        return [to_summary(s) for s in (await session.execute(query)).unique().scalars()]
+        rows = (await session.execute(query)).unique().scalars()
+        return [PublishedRelease(to_summary(s), s.published_at) for s in rows]
 
 
 async def songs_owned_by(user_id: UUID) -> list[UUID]:
