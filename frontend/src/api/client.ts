@@ -3,6 +3,11 @@ export type Tokens = { access_token: string; refresh_token: string };
 type Options = Omit<RequestInit, "body"> & { json?: unknown; body?: BodyInit };
 
 const REFRESH_KEY = "meloxo.refresh";
+const RACE_WAIT_MS = 300;
+const NETWORK_MESSAGE = "No hay conexión con MELOXO. Revisa tu red e intenta de nuevo.";
+
+/** Solo "rejected" significa que la sesión acabó. Un corte de red o un 5xx no dicen nada de la sesión. */
+type Renewal = "renewed" | "rejected" | "unreachable";
 
 export class ApiError extends Error {
   constructor(
@@ -15,7 +20,7 @@ export class ApiError extends Error {
 }
 
 let accessToken: string | null = null;
-let refreshing: Promise<boolean> | null = null;
+let refreshing: Promise<Renewal> | null = null;
 const endedListeners = new Set<() => void>();
 
 function storedRefresh(): string | null {
@@ -56,26 +61,42 @@ async function send(path: string, options: Options): Promise<Response> {
     return await fetch(path, init);
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
-    throw new ApiError(0, "network_error", "No hay conexión con MELOXO. Revisa tu red e intenta de nuevo.");
+    throw new ApiError(0, "network_error", NETWORK_MESSAGE);
   }
 }
 
-async function renew(): Promise<boolean> {
-  const token = storedRefresh();
-  if (!token) return false;
+async function exchange(token: string): Promise<Renewal> {
   const response = await fetch("/api/auth/refresh", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ refresh_token: token }),
   }).catch(() => null);
-  if (!response?.ok) return false;
-  setSession((await response.json()) as Tokens);
-  return true;
+  if (response?.ok) {
+    setSession((await response.json()) as Tokens);
+    return "renewed";
+  }
+  return response?.status === 401 ? "rejected" : "unreachable";
+}
+
+async function renew(): Promise<Renewal> {
+  const token = storedRefresh();
+  if (!token) return "rejected";
+  const result = await exchange(token);
+  if (result !== "rejected") return result;
+  // Sin candado, otra pestaña pudo gastar el mismo token: su reemplazo ya está guardado o llega enseguida.
+  await new Promise((resolve) => setTimeout(resolve, RACE_WAIT_MS));
+  const latest = storedRefresh();
+  return latest && latest !== token ? exchange(latest) : "rejected";
+}
+
+/** El token se rota en cada uso: dos pestañas no pueden renovar a la vez. Sin HTTPS no hay candado. */
+async function acrossTabs(work: () => Promise<Renewal>): Promise<Renewal> {
+  return navigator.locks ? navigator.locks.request(REFRESH_KEY, work) : work();
 }
 
 /** Varias peticiones con el token vencido comparten una sola renovación. */
-function renewOnce(): Promise<boolean> {
-  refreshing ??= renew().finally(() => {
+function renewOnce(): Promise<Renewal> {
+  refreshing ??= acrossTabs(renew).finally(() => {
     refreshing = null;
   });
   return refreshing;
@@ -96,9 +117,12 @@ async function authorized(path: string, options: Options): Promise<Response> {
   if (response.status === 401 && !path.startsWith("/api/auth/")) {
     const original = accessToken;
     const failure = await toError(response);
-    if (await renewOnce()) {
+    const renewal = await renewOnce();
+    if (renewal === "renewed") {
       response = await send(path, options);
       if (response.status === 401) throw await toError(response);
+    } else if (renewal === "unreachable") {
+      throw new ApiError(0, "network_error", NETWORK_MESSAGE);
     } else {
       if (original === accessToken) setSession(null);
       endedListeners.forEach((listener) => listener());

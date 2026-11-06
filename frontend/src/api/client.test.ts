@@ -90,4 +90,59 @@ describe("api", () => {
     expect(new Headers(init.headers).get("content-type")).toBe("application/json");
     expect(init.body).toBe('{"a":1}');
   });
+
+  describe("al renovar", () => {
+    const refreshBody = (index: number) =>
+      JSON.parse(fetchMock.mock.calls.filter((c) => c[0] === "/api/auth/refresh")[index][1].body as string);
+
+    test("un corte de red conserva la sesión", async () => {
+      const ended = vi.fn();
+      const stop = onSessionEnded(ended);
+      fetchMock.mockImplementation(async (url: string) => {
+        if (url === "/api/auth/refresh") throw new TypeError("connection reset");
+        return expired();
+      });
+      await expect(api("/api/notices")).rejects.toMatchObject({ status: 0, code: "network_error" });
+      expect(localStorage.getItem("meloxo.refresh")).toBe("r1");
+      expect(getAccessToken()).toBe("viejo");
+      expect(ended).not.toHaveBeenCalled();
+      stop();
+    });
+
+    test("un error del servidor conserva la sesión", async () => {
+      const ended = vi.fn();
+      const stop = onSessionEnded(ended);
+      fetchMock.mockImplementation(async (url: string) => (url === "/api/auth/refresh" ? json(503, {}) : expired()));
+      await expect(api("/api/notices")).rejects.toMatchObject({ status: 0 });
+      expect(localStorage.getItem("meloxo.refresh")).toBe("r1");
+      expect(ended).not.toHaveBeenCalled();
+      stop();
+    });
+
+    test("si otra pestaña ganó la renovación, sigue con su token", async () => {
+      let attempts = 0;
+      fetchMock.mockImplementation(async (url: string) => {
+        if (url === "/api/auth/refresh") {
+          attempts += 1;
+          if (attempts === 1) {
+            localStorage.setItem("meloxo.refresh", "de-la-otra-pestana");
+            return expired();
+          }
+          return renewed();
+        }
+        return attempts === 2 ? json(200, { ok: true }) : expired();
+      });
+      await expect(api("/api/notices")).resolves.toEqual({ ok: true });
+      expect(refreshBody(1).refresh_token).toBe("de-la-otra-pestana");
+      expect(localStorage.getItem("meloxo.refresh")).toBe("r2");
+    });
+
+    test("dos pestañas renuevan por turnos con un candado", async () => {
+      const request = vi.fn((_name: string, work: () => Promise<unknown>) => work());
+      vi.stubGlobal("navigator", { ...navigator, locks: { request } });
+      fetchMock.mockResolvedValueOnce(expired()).mockResolvedValueOnce(renewed()).mockResolvedValueOnce(json(200, {}));
+      await api("/api/notices");
+      expect(request).toHaveBeenCalledWith("meloxo.refresh", expect.any(Function));
+    });
+  });
 });
