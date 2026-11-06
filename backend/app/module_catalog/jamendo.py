@@ -61,6 +61,9 @@ def to_track(raw: dict) -> JamendoTrack:
 
 
 class JamendoClient:
+    async def ping(self) -> None:
+        await self._get({"limit": 1})
+
     async def _get(self, params: dict) -> list[JamendoTrack]:
         settings = get_settings()
         query = {

@@ -4,8 +4,10 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 
+from app.core.config import get_settings
 from app.core.db import session_scope
 from app.module_catalog.import_jobs import refresh_metadata
+from app.module_catalog.jamendo import JamendoClient, JamendoError
 from app.module_catalog.models import Artist, Song
 from app.module_catalog.publishing import publish_due_tracks
 from app.module_catalog.schemas import ArtistSummary, PublishedRelease, ReleaseCounts, SongSummary, UpcomingRelease
@@ -20,6 +22,7 @@ __all__ = [
     "catalog_by_source",
     "get_artists",
     "get_songs",
+    "jamendo_status",
     "publish_due_tracks",
     "published_since",
     "refresh_metadata",
@@ -98,3 +101,13 @@ async def release_counts(owner_id: UUID | None = None) -> ReleaseCounts:
     async with session_scope() as session:
         counts = dict((await session.execute(query)).all())
     return ReleaseCounts(scheduled=counts.get("scheduled", 0), published=counts.get("published", 0))
+
+
+async def jamendo_status() -> str:
+    if not get_settings().JAMENDO_CLIENT_ID:
+        return "not_configured"
+    try:
+        await JamendoClient().ping()
+    except JamendoError:
+        return "down"
+    return "up"
