@@ -10,6 +10,7 @@ from app.core.scheduler import periodic
 from app.module_catalog.public import publish_due_tracks, refresh_metadata
 from app.module_catalog.composer_routes import router as composer_router
 from app.module_catalog.routes import router as catalog_router
+from app.module_playlists.routes import router as playlists_router
 from app.module_users.public import ensure_first_admin
 from app.module_users.routes import router as users_router
 
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(users_router)
     app.include_router(catalog_router)
     app.include_router(composer_router)
+    app.include_router(playlists_router)
 
     @app.get("/api/health")
     async def health() -> dict:
