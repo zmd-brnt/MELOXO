@@ -1,6 +1,7 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
-import { api } from "../api/client";
+import { api, ApiError } from "../api/client";
 import { renderApp, routes, song } from "../test-utils";
 import { Home } from "./Home";
 
@@ -85,4 +86,17 @@ test("si catálogo falla, Inicio avisa y sigue en pie", async () => {
   );
   renderApp(<Home />);
   expect(await screen.findByText(/no están disponibles por ahora/)).toBeInTheDocument();
+});
+
+test("si no se puede entrar al casete, Inicio dice por qué", async () => {
+  vi.mocked(api).mockImplementation(
+    routes({
+      ...empty,
+      "/api/tapes/invites/pending": [{ invite_id: "i1", inviter: "Ana", title: "Viaje" }],
+      "POST /api/tapes/claims/i1/join": new ApiError(409, "tape_full_members", "El casete ya tiene todos sus miembros"),
+    }) as typeof api,
+  );
+  renderApp(<Home />);
+  await userEvent.click(await screen.findByRole("button", { name: "Unirme al casete" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("El casete ya tiene todos sus miembros");
 });

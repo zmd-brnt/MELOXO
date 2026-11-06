@@ -56,6 +56,7 @@ export function Library() {
           </div>
         </Note>
       ))}
+      {join.error instanceof ApiError && <p className="form-error" role="alert">{join.error.message}</p>}
       <h2>Casetes</h2>
       {/* En escritorio este botón ya está en la barra lateral. */}
       <Link className="primary only-compact" to="/tapes/new"><Icon name="plus" />Crear casete</Link>

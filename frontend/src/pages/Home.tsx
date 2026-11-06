@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../api/client";
+import { api, ApiError } from "../api/client";
 import { useInviteActions, usePendingInvites, useTapes } from "../api/queries";
 import type { HistoryItem, Page, Releases, Song } from "../api/types";
 import { Cover } from "../components/Cover";
@@ -30,6 +30,7 @@ function Invitations() {
           </div>
         </Note>
       ))}
+      {join.error instanceof ApiError && <p className="form-error" role="alert">{join.error.message}</p>}
     </div>
   );
 }
