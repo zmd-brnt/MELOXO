@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     ADMIN_EMAIL: str = ""
     ADMIN_PASSWORD: str = ""
+    DEMO_PASSWORD: str = ""
     JAMENDO_CLIENT_ID: str = ""
     JAMENDO_API_URL: str = "https://api.jamendo.com/v3.0"
     JAMENDO_AUDIO_MODE: str = "proxy"

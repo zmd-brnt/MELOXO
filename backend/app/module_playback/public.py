@@ -7,8 +7,9 @@ from app.core.db import session_scope
 from app.module_playback.models import Playback, PlaybackCounter
 from app.module_playback.schemas import PlaybackEvent, RetentionStats
 from app.module_playback.service import DUPLICATES
+from app.module_playback.demo import DEMO_DUPLICATES, DemoPlay, clear_demo_playbacks, insert_demo_playbacks  # noqa: F401
 
-__all__ = ["PlaybackEvent", "RetentionStats", "duplicates_discarded", "events_since", "retention_for_songs"]
+__all__ = ["PlaybackEvent", "RetentionStats", "duplicates_discarded", "events_since", "retention_for_songs", "DemoPlay", "clear_demo_playbacks", "insert_demo_playbacks"]
 
 
 async def events_since(cursor: int, limit: int) -> list[PlaybackEvent]:
@@ -30,7 +31,8 @@ async def events_since(cursor: int, limit: int) -> list[PlaybackEvent]:
 
 async def duplicates_discarded() -> int:
     async with session_scope() as session:
-        return await session.scalar(select(PlaybackCounter.value).where(PlaybackCounter.key == DUPLICATES)) or 0
+        total = select(func.sum(PlaybackCounter.value)).where(PlaybackCounter.key.in_([DUPLICATES, DEMO_DUPLICATES]))
+        return await session.scalar(total) or 0
 
 
 async def retention_for_songs(song_ids: list[UUID], durations: dict[UUID, float]) -> RetentionStats:

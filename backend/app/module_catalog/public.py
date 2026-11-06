@@ -14,12 +14,21 @@ from app.module_catalog.models import Artist, Song
 from app.module_catalog.publishing import publish_due_tracks
 from app.module_catalog.schemas import ArtistSummary, PublishedRelease, ReleaseCounts, SongSummary, UpcomingRelease
 from app.module_catalog.service import to_artist_summary, to_summary
+from app.module_catalog.demo import DemoComposer, DemoTrack, ListenableSong, clear_demo_catalog, demo_import_done, import_demo_catalog, insert_demo_catalog, listenable_songs  # noqa: F401
 
 JAMENDO_PING_SECONDS = 1.5
 JAMENDO_STATUS_SECONDS = 60
 _jamendo_status: dict[str, tuple[float, str]] = {}
 
 __all__ = [
+    "DemoComposer",
+    "DemoTrack",
+    "ListenableSong",
+    "clear_demo_catalog",
+    "demo_import_done",
+    "import_demo_catalog",
+    "insert_demo_catalog",
+    "listenable_songs",
     "ArtistSummary",
     "PublishedRelease",
     "ReleaseCounts",

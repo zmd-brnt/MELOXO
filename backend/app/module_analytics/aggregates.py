@@ -1,9 +1,10 @@
 """Tablas de resumen. Lee los eventos por la interfaz pública de playback, nunca sus tablas."""
+import asyncio
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 from itertools import takewhile
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.db import session_scope
@@ -66,6 +67,23 @@ async def refresh_aggregates(settle_seconds: float = 1.0) -> int:
         await _upsert(session, UserPlays, personal, ("user_id", "song_id"), extra_personal)
         cursor.last_seq = settled[-1].seq
         return len(settled)
+
+
+async def catch_up_aggregates() -> None:
+    """Procesa hasta quedar al día, sin ventana de asentamiento. El proceso de la app puede tener el candado un momento."""
+    while await lag_seconds() is not None:
+        if not await refresh_aggregates(settle_seconds=0):
+            await asyncio.sleep(0.2)
+
+
+async def rebuild_aggregates() -> None:
+    """Rehace los agregados desde los eventos. Solo hace falta cuando se borran eventos, como al limpiar la demo."""
+    async with session_scope() as session:
+        await session.execute(select(func.pg_advisory_xact_lock(LOCK_KEY)))
+        await session.execute(delete(PlaysHourly))
+        await session.execute(delete(UserPlays))
+        await session.execute(delete(AggCursor))
+    await catch_up_aggregates()
 
 
 async def lag_seconds() -> float | None:

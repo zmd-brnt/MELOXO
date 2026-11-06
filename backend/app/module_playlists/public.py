@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 
 from app.core.db import session_scope
 from app.module_playlists.models import PlaylistSong
+from app.module_playlists.demo import DemoPlaylist, clear_demo_playlists, insert_demo_playlists  # noqa: F401
 
 
 async def count_inclusions(song_ids: list[UUID]) -> int:

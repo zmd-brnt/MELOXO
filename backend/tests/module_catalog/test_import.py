@@ -106,10 +106,10 @@ async def test_job_pages_until_limit():
 
 @respx.mock
 async def test_job_stops_on_empty_page():
-    route = respx.get(API).mock(side_effect=[page(track(1)), page()])
+    route = respx.get(API).mock(side_effect=[page(track(1)), *[page()] * import_jobs.EMPTY_ATTEMPTS])
     job_id = await new_job(limit=10, page_size=1)
     await run_import_job(job_id)
-    assert route.call_count == 2
+    assert route.call_count == 1 + import_jobs.EMPTY_ATTEMPTS
     assert (await get_job(job_id)).status == "done"
 
 
@@ -247,3 +247,23 @@ async def test_refresh_survives_jamendo_down():
     await run_import_job(await new_job(limit=1, page_size=1))
     respx.get(API).mock(side_effect=httpx.ConnectError("caído"))
     assert await refresh_metadata() == 0
+
+
+@respx.mock
+async def test_empty_page_from_jamendo_is_retried():
+    """Jamendo devuelve listas vacías al azar: eso no significa que el género se acabó."""
+    route = respx.get(API).mock(side_effect=[page(), page(), page(track(1), track(2))])
+    job_id = await create_job(None, {"genres": ["rock"], "limit_per_genre": 2})
+    await run_import_job(job_id)
+    job = await get_job(job_id)
+    assert (job.status, job.imported) == ("done", 2)
+    assert route.call_count == 3
+
+
+@respx.mock
+async def test_genre_without_tracks_ends_after_retries():
+    route = respx.get(API).mock(return_value=page())
+    job_id = await create_job(None, {"genres": ["rock"], "limit_per_genre": 2})
+    await run_import_job(job_id)
+    assert (await get_job(job_id)).status == "done"
+    assert route.call_count == import_jobs.EMPTY_ATTEMPTS

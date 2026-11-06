@@ -14,6 +14,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY backend/pyproject.toml backend/alembic.ini ./
 COPY backend/app ./app
+COPY backend/seed ./seed
 COPY backend/migrations ./migrations
 RUN pip install --no-cache-dir .
 COPY --from=web /web/dist ./static

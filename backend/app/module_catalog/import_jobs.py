@@ -15,6 +15,8 @@ from app.module_catalog.models import Album, Artist, ImportJob, Song
 
 log = logging.getLogger(__name__)
 BACKOFF_SECONDS = (1, 2, 4)
+EMPTY_ATTEMPTS = 6
+EMPTY_WAIT_SECONDS = 1
 STALE_AFTER = timedelta(minutes=10)
 background_tasks: set[asyncio.Task] = set()
 _sleep = asyncio.sleep
@@ -148,6 +150,16 @@ async def _fetch_with_backoff(client: JamendoClient, genre: str | None, limit: i
     raise AssertionError("inalcanzable")
 
 
+async def _fetch_page(client: JamendoClient, genre: str | None, limit: int, offset: int, order: str):
+    """Jamendo a veces devuelve una lista vacía para una consulta que sí tiene pistas, así que se pregunta de nuevo."""
+    for attempt in range(1, EMPTY_ATTEMPTS + 1):
+        tracks = await _fetch_with_backoff(client, genre, limit, offset, order)
+        if tracks or attempt == EMPTY_ATTEMPTS:
+            return tracks
+        await _sleep(EMPTY_WAIT_SECONDS)
+    raise AssertionError("inalcanzable")
+
+
 async def run_import_job(job_id: UUID) -> None:
     job = await get_job(job_id)
     params = job.params
@@ -163,9 +175,7 @@ async def run_import_job(job_id: UUID) -> None:
             remaining = limit - offset
             tracks = []
             if remaining > 0:
-                tracks = await _fetch_with_backoff(
-                    client, genres[genre_index], min(page_size, remaining), offset, order
-                )
+                tracks = await _fetch_page(client, genres[genre_index], min(page_size, remaining), offset, order)
             if tracks:
                 await upsert_tracks(tracks)
                 offset += len(tracks)

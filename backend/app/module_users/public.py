@@ -9,6 +9,7 @@ from app.core.db import session_scope
 from app.core.errors import AppError
 from app.module_users import admin, service
 from app.module_users.models import User
+from app.module_users.demo import DemoUser, clear_demo_users, demo_user_ids, insert_demo_users  # noqa: F401
 
 
 @dataclass(frozen=True)

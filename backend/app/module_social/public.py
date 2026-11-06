@@ -6,8 +6,9 @@ from sqlalchemy import func, select
 from app.core.db import session_scope
 from app.module_social.models import Tape, TapeMember, TapeTrack
 from app.module_social.schemas import TapeActivity
+from app.module_social.demo import DemoTape, DemoTapeTrack, clear_demo_social, insert_demo_links, insert_demo_tapes  # noqa: F401
 
-__all__ = ["TapeActivity", "count_tape_inclusions", "tape_activity"]
+__all__ = ["TapeActivity", "count_tape_inclusions", "tape_activity", "DemoTape", "DemoTapeTrack", "clear_demo_social", "insert_demo_links", "insert_demo_tapes"]
 
 
 async def count_tape_inclusions(song_ids: list[UUID]) -> int:
