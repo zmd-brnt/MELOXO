@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 @dataclass(frozen=True)
@@ -80,11 +80,28 @@ class TrackPatch(BaseModel):
     album_id: UUID | None = None
     publish_at: datetime | None = None
 
+    @field_validator("title", "genre", "license")
+    @classmethod
+    def not_null(cls, value: str | None) -> str:
+        """Omitirlo deja el valor como está. Mandarlo en null dejaría la pista sin ese dato."""
+        if value is None:
+            raise ValueError("No puede quedar vacío")
+        return value
+
 
 class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     bio: str = Field(default="", max_length=2000)
     links: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("links")
+    @classmethod
+    def only_web_links(cls, links: dict[str, str]) -> dict[str, str]:
+        """Se muestran como enlaces en la página pública: un javascript: correría en el navegador de quien lo abra."""
+        for url in links.values():
+            if not url.lower().startswith(("http://", "https://")):
+                raise ValueError("Los enlaces deben empezar con http:// o https://")
+        return links
 
 
 class HideIn(BaseModel):

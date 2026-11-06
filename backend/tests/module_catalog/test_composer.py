@@ -226,3 +226,26 @@ async def test_media_route_does_not_serve_audio_or_escape(client, composer):
         song = (await session.execute(select(Song))).unique().scalar_one()
     assert (await client.get(f"/api/media/{song.audio_path}")).status_code == 404
     assert (await client.get("/api/media/covers/..%2F..%2Fetc%2Fpasswd")).status_code == 404
+
+
+@pytest.mark.parametrize("field", ["title", "genre", "license"])
+async def test_patch_null_field_rejected(client, composer, field):
+    song_id = (await upload(client, composer)).json()["id"]
+    r = await client.patch(f"/api/composer/tracks/{song_id}", json={field: None}, headers=composer.headers)
+    assert r.status_code == 422
+    async with session_scope() as session:
+        assert await session.scalar(select(Song.genres).where(Song.id == song_id)) == ["rock"]
+
+
+@pytest.mark.parametrize("link", ["javascript:alert(1)", "data:text/html,x", "ftp://a.example", "sin-esquema"])
+async def test_profile_link_must_be_http(client, composer, link):
+    body = {"name": "A", "bio": "", "links": {"web": link}}
+    r = await client.put("/api/composer/profile", json=body, headers=composer.headers)
+    assert r.status_code == 422
+
+
+async def test_profile_link_http_saved(client, composer):
+    body = {"name": "A", "bio": "", "links": {"web": "https://a.example/yo"}}
+    r = await client.put("/api/composer/profile", json=body, headers=composer.headers)
+    assert r.status_code == 200
+    assert r.json()["links"] == {"web": "https://a.example/yo"}
