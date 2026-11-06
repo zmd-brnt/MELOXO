@@ -6,13 +6,12 @@ import { Attribution } from "./Attribution";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 
-type Props = { song: Song; onPlay: () => void; actions?: ReactNode; lead?: ReactNode };
+type Props = { song: Song; onPlay: () => void; actions?: ReactNode; as?: "li" | "div" };
 
-export function SongRow({ song, onPlay, actions, lead }: Props) {
+export function SongRow({ song, onPlay, actions, as: Tag = "li" }: Props) {
   const addSong = useAddSong();
   return (
-    <li className={song.available ? "song" : "song song-off"}>
-      {lead}
+    <Tag className={song.available ? "song" : "song song-off"}>
       <button
         className="song-play"
         type="button"
@@ -34,6 +33,6 @@ export function SongRow({ song, onPlay, actions, lead }: Props) {
         </button>
       )}
       {actions}
-    </li>
+    </Tag>
   );
 }

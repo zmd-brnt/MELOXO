@@ -17,7 +17,7 @@ export function NowPanel() {
   }
   return (
     <>
-      <h3 className="now-title">{context?.label ?? "Sonando"}</h3>
+      <h3 className="now-title">{current.side ? `Sonando · Lado ${current.side}` : "Sonando"}</h3>
       {context ? (
         <Link to={context.href} aria-label={`Abrir ${context.title}`}>
           <Tape title={context.title} color={context.color} tilt={-3} className="now-tape" />

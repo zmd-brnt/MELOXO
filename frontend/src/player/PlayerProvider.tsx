@@ -7,8 +7,8 @@ import * as Q from "./queue";
 import { recoverStream, streamUrl } from "./recovery";
 import { usePlaybackReporter } from "./usePlaybackReporter";
 
-export type QueueSong = Song & { dedication?: string | null; dedicatedBy?: string | null };
-export type PlayContext = { label: string; title: string; color: TapeColor; href: string };
+export type QueueSong = Song & { dedication?: string | null; dedicatedBy?: string | null; side?: string };
+export type PlayContext = { title: string; color: TapeColor; href: string };
 
 const VOLUME_KEY = "meloxo.volume";
 const MAX_RECOVERIES = 2;

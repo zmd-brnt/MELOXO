@@ -35,6 +35,7 @@ export type TapeSummary = {
   is_creator: boolean;
   member_count: number;
   track_count: number;
+  max_tracks: number;
 };
 
 export type PendingInvite = {
@@ -74,4 +75,33 @@ export type Notices = {
     | { type: "release"; song: Song; published_at: string }
     | ({ type: "invite" } & PendingInvite)
   )[];
+};
+
+export type TapeTrack = {
+  id: string;
+  position: number;
+  side: "A" | "B";
+  song: Song;
+  added_by: string;
+  added_by_name: string | null;
+  dedication: string | null;
+  can_remove: boolean;
+};
+
+export type TapeInviteRow = { id: string; expires_at: string | null; max_uses: number; uses: number };
+
+export type TapeDetail = {
+  id: string;
+  title: string;
+  color: TapeSummary["color"];
+  creator_id: string;
+  is_creator: boolean;
+  version: number;
+  created_at: string;
+  max_tracks: number;
+  max_members: number;
+  degraded: boolean;
+  members: { user_id: string; name: string | null; joined_at: string }[];
+  tracks: TapeTrack[];
+  invites: TapeInviteRow[];
 };

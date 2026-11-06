@@ -61,6 +61,7 @@ async def test_list_only_my_tapes(client, listener, make_user):
     assert [t["title"] for t in body] == ["Para el viaje"]
     assert body[0]["track_count"] == 0
     assert body[0]["member_count"] == 1
+    assert body[0]["max_tracks"] == 12
 
 
 async def test_unknown_color_422(client, listener):

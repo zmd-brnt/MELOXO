@@ -16,6 +16,9 @@ import { Playlist } from "./pages/Playlist";
 import { Profile } from "./pages/Profile";
 import { Register } from "./pages/Register";
 import { Search } from "./pages/Search";
+import { TapeCreate } from "./pages/TapeCreate";
+import { TapeDetail } from "./pages/TapeDetail";
+import { TapeInvite } from "./pages/TapeInvite";
 import { NowPanel } from "./player/NowPanel";
 import { PlayerBar } from "./player/PlayerBar";
 
@@ -47,6 +50,9 @@ export function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="playlists/:id" element={<Playlist />} />
           <Route path="artists/:id" element={<Artist />} />
+          <Route path="tapes/new" element={<TapeCreate />} />
+          <Route path="tapes/:id" element={<TapeDetail />} />
+          <Route path="invite/:token" element={<TapeInvite />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

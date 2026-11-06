@@ -21,7 +21,7 @@ function Tapes() {
           <span className={`swatch swatch-${tape.color}`} />
           <span>
             <b>{tape.title}</b>
-            <small>{tape.track_count} pistas · {tape.member_count === 1 ? "1 persona" : `${tape.member_count} personas`}</small>
+            <small>{tape.track_count} de {tape.max_tracks} · {tape.member_count === 1 ? "1 persona" : `${tape.member_count} personas`}</small>
           </span>
         </Link>
       ))}

@@ -89,6 +89,7 @@ async def list_mine(session: AsyncSession, user: CurrentUser) -> list[dict]:
             "is_creator": tape.creator_id == user.id,
             "member_count": member_count,
             "track_count": track_count,
+            "max_tracks": get_settings().TAPE_MAX_TRACKS,
             "created_at": tape.created_at,
         }
         for tape, member_count, track_count in (await session.execute(query)).all()

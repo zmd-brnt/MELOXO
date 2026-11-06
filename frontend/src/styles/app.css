@@ -71,7 +71,7 @@ small { color: var(--mute); font-size: 12px; }
 /* Casete */
 .tape { position: relative; width: 172px; flex: none; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55)); }
 .tape svg { width: 100%; display: block; }
-.tape span { position: absolute; left: 11%; right: 11%; top: 13%; font: 600 18px/1.1 var(--font-hand); color: #15131f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tape span { text-align: left; position: absolute; left: 11%; right: 11%; top: 13%; font: 600 18px/1.1 var(--font-hand); color: #15131f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tape-pink { --shell: var(--pink); }
 .tape-yellow { --shell: var(--yellow); }
 .tape-teal { --shell: var(--teal); }
@@ -271,3 +271,40 @@ a.round { text-decoration: none; }
 .pick-list button:disabled { opacity: 0.5; cursor: default; }
 .pick-list .swatch { width: 28px; height: 28px; }
 .pick-list small { margin-left: auto; }
+
+/* Casete */
+.tape-head { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-bottom: 12px; }
+.tape-head > div:last-child { flex: 1; min-width: 220px; }
+.tape-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.tape-side { min-width: 0; padding: 10px; background: var(--panel-2); border-radius: 10px; }
+.tape-side h2 { margin: 2px 0 8px; font-size: 14px; }
+.tape-side .song:hover { background: var(--line); }
+.tracks { margin: 0; padding: 0; list-style: none; }
+.tracks > li[draggable="true"] { cursor: grab; }
+.track-note { margin: 2px 8px 10px 60px; transform: rotate(-0.8deg); font: 600 19px/1.05 var(--font-hand); }
+.track-note small { display: block; margin-top: 3px; font: 12px var(--font-ui); }
+.confirm { display: inline-flex; gap: 4px; }
+.confirm .ghost { min-height: 32px; padding: 3px 8px; }
+.add-track { margin-bottom: 12px; padding: 10px; background: var(--panel-2); border-radius: 10px; }
+.add-track .field { width: 100%; background: var(--panel); }
+.add-track .pick-list { margin-top: 6px; }
+.add-track .pick-list button:hover { background: var(--line); }
+.invite-panel { margin-top: 16px; padding: 12px; border: 2px dashed var(--line); border-radius: 10px; }
+.invite-panel h2 { margin: 0 0 6px; font-size: 14px; }
+.invite-panel h3 { margin: 12px 0 6px; font-size: 12px; }
+fieldset { margin: 0 0 10px; padding: 0; border: 0; }
+legend { padding: 0; margin-bottom: 4px; font-weight: 600; }
+fieldset label { display: flex !important; flex-direction: row !important; align-items: center; gap: 6px; font-weight: 400 !important; min-height: 30px; }
+.invite-link { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 10px; }
+.invite-link input { min-height: 38px; padding: 6px 10px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 10px; }
+.invite-link small { grid-column: 1 / -1; }
+.invite-rows { margin: 0; padding: 0; list-style: none; }
+.invite-rows li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; }
+.invite-page { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 32px 12px; text-align: center; }
+.invite-page .tape { width: 240px; }
+.invite-page .note { text-align: left; }
+.invite-page > .invite-wide { width: min(360px, 100%); }
+.tape-create { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; }
+.tape-create .tape { width: 240px; }
+.tape-create .stack-form { flex: 1; min-width: 240px; }
+@media (max-width: 1500px) { .tape-sides { grid-template-columns: minmax(0, 1fr); } }

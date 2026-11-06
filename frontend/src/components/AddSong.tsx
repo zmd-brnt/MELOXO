@@ -13,7 +13,7 @@ const AddSongContext = createContext<(song: Song) => void>(() => undefined);
 
 export const useAddSong = () => useContext(AddSongContext);
 
-function AddSongDialog({ song, maxTracks, onClose }: { song: Song; maxTracks: number; onClose: () => void }) {
+function AddSongDialog({ song, onClose }: { song: Song; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const client = useQueryClient();
   const tapes = useTapes();
@@ -67,7 +67,7 @@ function AddSongDialog({ song, maxTracks, onClose }: { song: Song; maxTracks: nu
           {tapes.data?.length ? (
             <ul className="pick-list">
               {tapes.data.map((tape) => {
-                const full = tape.track_count >= maxTracks;
+                const full = tape.track_count >= tape.max_tracks;
                 return (
                   <li key={tape.id}>
                     <button
@@ -77,7 +77,7 @@ function AddSongDialog({ song, maxTracks, onClose }: { song: Song; maxTracks: nu
                     >
                       <span className={`swatch swatch-${tape.color}`} />
                       <b>{tape.title}</b>
-                      <small>{full ? "Lleno" : `${tape.track_count} de ${maxTracks}`}</small>
+                      <small>{full ? "Lleno" : `${tape.track_count} de ${tape.max_tracks}`}</small>
                     </button>
                   </li>
                 );
@@ -111,8 +111,6 @@ function AddSongDialog({ song, maxTracks, onClose }: { song: Song; maxTracks: nu
   );
 }
 
-const MAX_TRACKS = 12;
-
 export function AddSongProvider({ children }: { children: ReactNode }) {
   const [song, setSong] = useState<Song | null>(null);
   const open = useCallback((chosen: Song) => setSong(chosen), []);
@@ -121,7 +119,7 @@ export function AddSongProvider({ children }: { children: ReactNode }) {
   return (
     <AddSongContext.Provider value={value}>
       {children}
-      {song && <AddSongDialog song={song} maxTracks={MAX_TRACKS} onClose={close} />}
+      {song && <AddSongDialog song={song} onClose={close} />}
     </AddSongContext.Provider>
   );
 }
