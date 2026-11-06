@@ -1,7 +1,10 @@
-# demo
+# Demo
 
-Escenarios reproducibles del PRD y prueba de carga. Cada escenario corre contra `http://localhost:8080`,
-imprime `PASA` o `FALLA` y sale con error si falla.
+Escenarios reproducibles del [PRD](../docs/prd.md) y prueba de carga. Cada escenario corre contra
+`http://localhost:8080`, imprime `PASA` o `FALLA` y sale con error si falla.
+
+El número de cada archivo es el del escenario en la sección 14 del PRD. El 1 y el 2 necesitan servicios separados, así
+que llegan en las ramas siguientes. El 9 es la prueba de carga de `locustfile.py`.
 
 ## Antes de empezar
 
@@ -17,19 +20,20 @@ docker compose exec app python -m seed all
 Solo usan la biblioteca estándar de Python:
 
 ```bash
-for f in demo/escenario_*.py; do python3 "$f" || break; done
+for f in demo/scenario_*.py; do python3 "$f" || break; done
 ```
 
 | Archivo | Qué comprueba |
 | --- | --- |
-| `escenario_3_jamendo_caido.py` | Con Jamendo cortado, las pistas locales y los metadatos guardados siguen; el audio de Jamendo da `503 jamendo_unavailable` |
-| `escenario_4_idempotencia.py` | 100 envíos del mismo `playback_id`: una reproducción y `duplicates_discarded` +99 |
-| `escenario_5_casete_lleno.py` | Dos miembros agregan a la vez la pista 12: una `201` y una `409 tape_full`, en 5 rondas |
-| `escenario_6_ultimo_admin.py` | Degradar al único administrador activo da `409`, no cambia nada y queda auditado |
-| `escenario_7_permisos.py` | Un Compositor recibe `403` en pistas ajenas y en `/api/admin/*` |
-| `escenario_8_doble_publicacion.py` | Dos réplicas con pistas vencidas: un evento `track_published` y un aviso por pista |
+| `scenario_3_jamendo_down.py` | Con Jamendo cortado, las pistas locales y los metadatos guardados siguen; el audio de Jamendo da `503 jamendo_unavailable` |
+| `scenario_4_idempotency.py` | 100 envíos del mismo `playback_id`: una reproducción y `duplicates_discarded` +99 |
+| `scenario_5_tape_full.py` | Dos miembros agregan a la vez la pista 12: una `201` y una `409 tape_full`, en 5 rondas |
+| `scenario_6_last_admin.py` | Degradar al único administrador activo da `409`, no cambia nada y queda auditado |
+| `scenario_7_permissions.py` | Un Compositor recibe `403` en pistas ajenas y en `/api/admin/*` |
+| `scenario_8_double_publish.py` | Dos réplicas con pistas vencidas: un evento `track_published` y un aviso por pista |
 
-`common.py` reúne las ayudas. `docker-compose.demo.yml`, en la raíz, es el overlay de los escenarios 3 y 8.
+`common.py` reúne lo que comparten los escenarios: el cliente de la API, las cuentas de prueba y el arranque del overlay.
+`compose.demo.yaml`, en la raíz, es ese overlay, y lo usan los escenarios 3 y 8.
 
 ### Lo que hay que saber
 

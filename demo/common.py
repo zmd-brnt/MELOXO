@@ -13,11 +13,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = os.environ.get("MELOXO_URL", "http://localhost:8080")
-AUDIO = ROOT / "frontend/e2e/fixtures/tono.mp3"
+AUDIO = ROOT / "frontend/e2e/fixtures/tone.mp3"
 DOMAIN = "escenarios.meloxo.dev"
 PASSWORD = "escenario-" + uuid.uuid4().hex
 COMPOSE = ["docker", "compose"]
-OVERLAY = [*COMPOSE, "-f", "docker-compose.yml", "-f", "docker-compose.demo.yml"]
+OVERLAY = [*COMPOSE, "-f", "compose.yaml", "-f", "compose.demo.yaml"]
 START_SECONDS = 60
 
 
@@ -89,7 +89,7 @@ class Api:
             f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode()
             for key, value in fields.items()
         ]
-        head = f'--{boundary}\r\nContent-Disposition: form-data; name="audio"; filename="tono.mp3"\r\n'
+        head = f'--{boundary}\r\nContent-Disposition: form-data; name="audio"; filename="tone.mp3"\r\n'
         parts.append(f"{head}Content-Type: audio/mpeg\r\n\r\n".encode() + AUDIO.read_bytes() + b"\r\n")
         parts.append(f"--{boundary}--\r\n".encode())
         headers = {"Content-Type": f"multipart/form-data; boundary={boundary}"}

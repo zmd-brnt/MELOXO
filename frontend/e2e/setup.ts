@@ -64,7 +64,7 @@ export default async function setup() {
         title: songTitle,
         genre: "rock",
         license: "CC BY 4.0",
-        audio: { name: "tono.mp3", mimeType: "audio/mpeg", buffer: readFileSync(join(here, "fixtures/tono.mp3")) },
+        audio: { name: "tone.mp3", mimeType: "audio/mpeg", buffer: readFileSync(join(here, "fixtures/tone.mp3")) },
       },
     }),
   );

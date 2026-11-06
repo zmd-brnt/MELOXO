@@ -7,7 +7,7 @@ from functools import lru_cache
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-import app
+import app.modules
 from app.core.config import get_settings
 
 
@@ -17,13 +17,13 @@ class Base(DeclarativeBase):
 
 def load_models() -> None:
     """Importa los modelos de cada módulo para registrar sus tablas."""
-    for info in pkgutil.iter_modules(app.__path__):
-        if info.name.startswith("module_"):
-            try:
-                importlib.import_module(f"app.{info.name}.models")
-            except ModuleNotFoundError as exc:
-                if exc.name != f"app.{info.name}.models":
-                    raise
+    for info in pkgutil.iter_modules(app.modules.__path__):
+        name = f"app.modules.{info.name}.models"
+        try:
+            importlib.import_module(name)
+        except ModuleNotFoundError as exc:
+            if exc.name != name:
+                raise
 
 
 @lru_cache

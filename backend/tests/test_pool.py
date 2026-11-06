@@ -1,8 +1,8 @@
 """Con carga, una petición no debe retener su conexión mientras otro módulo abre la suya."""
 from app.core.db import get_engine
-from app.module_playback import service as playback
-from app.module_playlists import service as playlists
-from app.module_social import service as social
+from app.modules.playback import service as playback
+from app.modules.playlists import service as playlists
+from app.modules.social import service as social
 
 
 def spy(module, name, monkeypatch):

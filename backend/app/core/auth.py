@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.errors import AppError
 from app.core.security import decode_token
-from app.module_users.public import get_auth_state
+from app.modules.users.public import get_auth_state
 
 _bearer = HTTPBearer(auto_error=False)
 

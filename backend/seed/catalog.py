@@ -1,5 +1,5 @@
 """Catálogo real de Jamendo. Reutiliza el trabajo de importación del Administrador."""
-from app.module_catalog.public import demo_import_done, import_demo_catalog
+from app.modules.catalog.public import demo_import_done, import_demo_catalog
 
 
 async def import_catalog(sizes) -> str:

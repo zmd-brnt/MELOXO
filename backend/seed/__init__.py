@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from random import Random
 
-from app.module_analytics.public import catch_up_aggregates, rebuild_aggregates
-from app.module_catalog.public import clear_demo_catalog
-from app.module_playback.public import clear_demo_playbacks
-from app.module_playlists.public import clear_demo_playlists
-from app.module_social.public import clear_demo_social
-from app.module_users.public import clear_demo_users, demo_user_ids
+from app.modules.analytics.public import catch_up_aggregates, rebuild_aggregates
+from app.modules.catalog.public import clear_demo_catalog
+from app.modules.playback.public import clear_demo_playbacks
+from app.modules.playlists.public import clear_demo_playlists
+from app.modules.social.public import clear_demo_social
+from app.modules.users.public import clear_demo_users, demo_user_ids
 from seed.activity import create_activity, create_catalog
 from seed.audio import remove_tones
 from seed.catalog import import_catalog

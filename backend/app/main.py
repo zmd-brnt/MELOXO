@@ -9,18 +9,18 @@ from fastapi.responses import FileResponse
 from app.core.config import get_settings
 from app.core.errors import AppError, register_error_handlers
 from app.core.scheduler import periodic
-from app.module_analytics.latency import LatencyMiddleware, flush_latency
-from app.module_analytics.public import refresh_aggregates
-from app.module_analytics.routes import router as analytics_router
-from app.module_catalog.public import publish_due_tracks, refresh_metadata
-from app.module_catalog.composer_routes import router as composer_router
-from app.module_catalog.routes import router as catalog_router
-from app.module_playback.routes import router as playback_router
-from app.module_playlists.routes import router as playlists_router
-from app.module_social.routes import router as social_router
-from app.module_social.tape_routes import router as tapes_router
-from app.module_users.public import ensure_first_admin
-from app.module_users.routes import router as users_router
+from app.modules.analytics.latency import LatencyMiddleware, flush_latency
+from app.modules.analytics.public import refresh_aggregates
+from app.modules.analytics.routes import router as analytics_router
+from app.modules.catalog.public import publish_due_tracks, refresh_metadata
+from app.modules.catalog.composer_routes import router as composer_router
+from app.modules.catalog.routes import router as catalog_router
+from app.modules.playback.routes import router as playback_router
+from app.modules.playlists.routes import router as playlists_router
+from app.modules.social.routes import router as social_router
+from app.modules.social.tape_routes import router as tapes_router
+from app.modules.users.public import ensure_first_admin
+from app.modules.users.routes import router as users_router
 
 
 @asynccontextmanager

@@ -15,7 +15,10 @@ npm run e2e
 | `helpers.ts` | Inicio de sesión, avance con Tab y revisión con axe |
 | `responsive.spec.ts` | Teléfono a 390 y 320 px: pestañas, reproductor, hoja y desbordes |
 | `a11y.spec.ts` | Escritorio: flujo solo con teclado, foco visible y axe |
-| `fixtures/tono.mp3` | Tono de 30 s generado con ffmpeg, sin derechos de terceros |
+| `fixtures/tone.mp3` | Tono de 30 s generado con ffmpeg, sin derechos de terceros |
+
+Hay dos proyectos en `playwright.config.ts`: `telefono` corre `responsive.spec.ts` y `escritorio` corre `a11y.spec.ts`.
+No hace falta la semilla, porque `setup.ts` crea lo que necesita.
 
 Cada ejecución agrega usuarios `compositor-…` y `oyente-…@meloxo.dev`, una pista y un casete a la base local. No uses
 estas pruebas contra una base con datos que quieras conservar.

@@ -9,6 +9,8 @@ Un solo `<audio>` montado fuera del enrutador, así la música no se corta al na
 | `usePlaybackReporter.ts` | Cuenta lo escuchado de verdad y envía los eventos |
 | `recovery.ts` | Decide qué hacer cuando falla el audio |
 | `PlayerBar.tsx`, `NowPanel.tsx`, `Reels.tsx` | Controles, panel "Sonando" y carretes |
+| `useCompact.ts` | Avisa si la pantalla es de teléfono, porque ahí el reproductor cambia de forma |
+| `format.ts` | Muestra los segundos como `3:07` |
 
 ## Eventos
 

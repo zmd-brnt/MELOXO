@@ -38,8 +38,8 @@ from argon2 import PasswordHasher  # noqa: E402
 from app.core import security  # noqa: E402
 from app.core.db import Base, get_engine, load_models, session_scope  # noqa: E402
 from app.main import create_app
-from app.module_catalog import public as catalog_public  # noqa: E402
-from app.module_users.service import login_limiter  # noqa: E402
+from app.modules.catalog import public as catalog_public  # noqa: E402
+from app.modules.users.service import login_limiter  # noqa: E402
 
 
 security._hasher = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)  # hash barato solo en pruebas
@@ -137,7 +137,7 @@ async def admin(make_user):
 
 @pytest.fixture
 def make_song():
-    from app.module_catalog.models import Album, Artist, Song
+    from app.modules.catalog.models import Album, Artist, Song
 
     async def _make(
         title="Luz de carretera",

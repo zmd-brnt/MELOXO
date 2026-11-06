@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from random import Random
 from uuid import UUID
 
-from app.module_users.public import DemoUser, insert_demo_users
+from app.modules.users.public import DemoUser, insert_demo_users
 
 DOMAIN = "demo.meloxo.dev"
 NAMES = ("Ana", "Bruno", "Carla", "Diego", "Elena", "Fer", "Gabi", "Hugo", "Inés", "Julia", "Kike", "Lucía", "Mateo", "Nora")

@@ -2,15 +2,15 @@
 from datetime import datetime, timedelta
 from random import Random
 
-from app.module_catalog.public import (
+from app.modules.catalog.public import (
     DemoComposer,
     DemoTrack,
     insert_demo_catalog,
     listenable_songs,
 )
-from app.module_playback.public import DemoPlay, insert_demo_playbacks
-from app.module_playlists.public import DemoPlaylist, insert_demo_playlists
-from app.module_social.public import DemoTape, DemoTapeTrack, insert_demo_links, insert_demo_tapes
+from app.modules.playback.public import DemoPlay, insert_demo_playbacks
+from app.modules.playlists.public import DemoPlaylist, insert_demo_playlists
+from app.modules.social.public import DemoTape, DemoTapeTrack, insert_demo_links, insert_demo_tapes
 from seed.audio import ensure_tones
 
 ARTISTS = (

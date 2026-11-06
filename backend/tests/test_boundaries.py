@@ -10,21 +10,35 @@ def test_module_boundaries():
 
 
 def test_detector_catches_private_import(tmp_path):
-    folder = tmp_path / "module_social"
-    folder.mkdir()
-    (folder / "x.py").write_text("from app.module_users.models import User\n")
+    folder = tmp_path / "modules" / "social"
+    folder.mkdir(parents=True)
+    (folder / "x.py").write_text("from app.modules.users.models import User\n")
     assert len(find_violations(tmp_path)) == 1
 
 
 def test_detector_allows_public_import(tmp_path):
-    folder = tmp_path / "module_social"
-    folder.mkdir()
-    (folder / "x.py").write_text("from app.module_users.public import get_auth_state\n")
+    folder = tmp_path / "modules" / "social"
+    folder.mkdir(parents=True)
+    (folder / "x.py").write_text("from app.modules.users.public import get_auth_state\n")
     assert find_violations(tmp_path) == []
 
 
 def test_detector_catches_plain_import(tmp_path):
-    folder = tmp_path / "module_social"
-    folder.mkdir()
-    (folder / "x.py").write_text("import app.module_users.service\n")
+    folder = tmp_path / "modules" / "social"
+    folder.mkdir(parents=True)
+    (folder / "x.py").write_text("import app.modules.users.service\n")
     assert len(find_violations(tmp_path)) == 1
+
+
+def test_detector_catches_module_import_from_package(tmp_path):
+    folder = tmp_path / "modules" / "social"
+    folder.mkdir(parents=True)
+    (folder / "x.py").write_text("from app.modules import users\n")
+    assert len(find_violations(tmp_path)) == 1
+
+
+def test_detector_allows_own_module(tmp_path):
+    folder = tmp_path / "modules" / "social"
+    folder.mkdir(parents=True)
+    (folder / "x.py").write_text("from app.modules.social.models import Tape\n")
+    assert find_violations(tmp_path) == []

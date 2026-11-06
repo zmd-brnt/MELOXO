@@ -3,8 +3,13 @@ import ast
 from pathlib import Path
 
 
+PACKAGE = "app.modules."
+
+
 def _owner(path: Path) -> str | None:
-    return next((part for part in path.parts if part.startswith("module_")), None)
+    """`modules/social/x.py` pertenece a `social`. Lo que está fuera de un módulo no tiene dueño."""
+    parts = path.parts
+    return parts[1] if len(parts) > 2 and parts[0] == "modules" else None
 
 
 def _imported(node: ast.AST) -> list[str]:
@@ -26,10 +31,10 @@ def find_violations(root: str | Path) -> list[str]:
             names = _imported(node)
             if not names:
                 continue
-            targets = [n for n in names if n.split(".")[:2][-1].startswith("module_") and n.startswith("app.")]
-            foreign = {n.split(".")[1] for n in targets} - {owner}
+            targets = [n for n in names if n.startswith(PACKAGE)]
+            foreign = {n.split(".")[2] for n in targets} - {owner}
             for module in foreign:
-                allowed = any(n.startswith(f"app.{module}.public") for n in names)
+                allowed = any(n.startswith(f"{PACKAGE}{module}.public") for n in names)
                 if not allowed:
                     violations.append(f"{path}: {owner} importa {module} sin pasar por public")
     return violations

@@ -1,8 +1,13 @@
 # Core
 
-Piezas compartidas por todos los módulos.
+Lo que usan todos los módulos. Aquí no van reglas de negocio.
 
-- `config.py`: variables de entorno.
-- `db.py`: motor, sesiones y base de los modelos. `session_scope()` es la sesión de `public.py`.
-- `errors.py`: `AppError` y el formato uniforme de errores.
-- `security.py`: contraseñas y JWT. `auth.py`: usuario actual y roles. `pagination.py`: páginas. `scheduler.py`: tareas periódicas.
+| Archivo | Para qué sirve |
+| --- | --- |
+| `config.py` | Variables de entorno |
+| `db.py` | Motor, sesiones y base de los modelos. `session_scope()` es la sesión de `public.py` |
+| `errors.py` | `AppError` y el formato uniforme de errores |
+| `security.py` | Contraseñas y JWT |
+| `auth.py` | Usuario actual y roles |
+| `pagination.py` | Páginas de resultados |
+| `scheduler.py` | Tareas periódicas |

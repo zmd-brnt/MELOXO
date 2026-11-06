@@ -12,14 +12,14 @@ from sqlalchemy import func, select
 import seed
 from app.core.db import session_scope
 from app.core.security import create_access_token
-from app.module_analytics.latency import flush_latency
-from app.module_analytics.models import PlaysHourly
-from app.module_catalog import import_jobs
-from app.module_catalog.models import Artist, Song
-from app.module_playback.models import Playback
-from app.module_playlists.models import Playlist
-from app.module_social.models import Favorite, Follow, Tape, TapeTrack
-from app.module_users.models import User
+from app.modules.analytics.latency import flush_latency
+from app.modules.analytics.models import PlaysHourly
+from app.modules.catalog import import_jobs
+from app.modules.catalog.models import Artist, Song
+from app.modules.playback.models import Playback
+from app.modules.playlists.models import Playlist
+from app.modules.social.models import Favorite, Follow, Tape, TapeTrack
+from app.modules.users.models import User
 from seed import audio
 from tests.media import mp3
 
@@ -219,7 +219,7 @@ def test_startup_does_not_run_seed():
 def test_seed_only_uses_public_interfaces():
     for path in (BACKEND / "seed").glob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
-            if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("app.module_"):
+            if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("app.modules."):
                 assert node.module.endswith(".public"), f"{path.name}: {node.module}"
 
 
