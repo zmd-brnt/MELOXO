@@ -62,3 +62,11 @@ async def test_my_requests(client, listener):
     await request_role(client, listener)
     r = await client.get("/api/composer-requests/mine", headers=listener.headers)
     assert [x["status"] for x in r.json()] == ["pending"]
+
+
+async def test_admin_list_says_who_asked(client, listener, admin):
+    await request_role(client, listener)
+    r = await client.get("/api/admin/composer-requests?status=pending", headers=admin.headers)
+    item = r.json()["items"][0]
+    assert item["user_email"] == listener.email
+    assert item["user_name"] == listener.email.split("@")[0]

@@ -8,6 +8,7 @@ Base común de las estadísticas: Chart.js con los colores y estilos de MELOXO.
 | `ChartCanvas.tsx` | Crea y destruye la gráfica sobre un `<canvas>` |
 | `ChartCard.tsx` | Tarjeta que carga datos y muestra gráfica, tabla, vacío o error |
 | `definitions.ts` | Gráficas concretas, columnas de sus tablas y ayudas como `fillDays` |
+| `export.ts` | Guarda un reporte como CSV (desde el backend) o PNG (desde la gráfica) |
 
 ## Reglas
 

@@ -3,6 +3,7 @@ import type { Chart, ChartConfiguration } from "chart.js";
 import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
 import { ChartCanvas } from "./ChartCanvas";
+import { exportCsv, exportPng } from "./export";
 
 export type Column = { key: string; label: string; format?: (value: never) => string };
 export type Row = Record<string, unknown>;
@@ -17,7 +18,10 @@ type Props = {
   chart?: (rows: Row[]) => ChartConfiguration;
   /** Para cifras que se leen mejor sin gráfica. */
   stat?: (rows: Row[]) => ReactNode;
-  actions?: (chart: Chart | null) => ReactNode;
+  /** Nombre del reporte en el backend. Con él, la tarjeta ofrece CSV y PNG. */
+  report?: string;
+  /** Va bajo la gráfica, por ejemplo la escala de un mapa de calor. */
+  note?: ReactNode;
   tall?: boolean;
   /** Alto según los datos, para que las barras no se aplasten con muchas filas. */
   height?: (rows: Row[]) => number;
@@ -31,10 +35,11 @@ function cell(column: Column, row: Row): string {
 }
 
 /** Una gráfica que falla no tumba la página (F7.3), y siempre hay tabla como alternativa. */
-export function ChartCard({ title, subtitle, url, columns, rows = defaultRows as never, chart, stat, actions, tall, height }: Props) {
+export function ChartCard({ title, subtitle, url, columns, rows = defaultRows as never, chart, stat, report, note, tall, height }: Props) {
   const [showTable, setShowTable] = useState(false);
   const instance = useRef<Chart | null>(null);
   const [, redraw] = useState(0);
+  const [exportFailed, setExportFailed] = useState(false);
   const query = useQuery({ queryKey: ["metric", url], queryFn: () => api<unknown>(url) });
   const data = useMemo(() => (query.data ? rows(query.data as never) : []), [query.data, rows]);
   const config = useMemo(() => (chart && data.length ? chart(data) : null), [chart, data]);
@@ -62,9 +67,32 @@ export function ChartCard({ title, subtitle, url, columns, rows = defaultRows as
               {showTable ? "Gráfica" : "Tabla"}
             </button>
           )}
-          {data.length > 0 && actions?.(instance.current)}
+          {data.length > 0 && report && (
+            <button
+              className="link"
+              type="button"
+              aria-label={`Exportar ${title} a CSV`}
+              onClick={() => {
+                setExportFailed(false);
+                exportCsv(report).catch(() => setExportFailed(true));
+              }}
+            >
+              CSV
+            </button>
+          )}
+          {data.length > 0 && report && instance.current && (
+            <button
+              className="link"
+              type="button"
+              aria-label={`Exportar ${title} a PNG`}
+              onClick={() => instance.current && exportPng(instance.current, report)}
+            >
+              PNG
+            </button>
+          )}
         </div>
       </figcaption>
+      {exportFailed && <p className="form-error" role="alert">No se pudo exportar. Intenta de nuevo.</p>}
       {query.isPending && <div className="chart-state" role="status">Cargando…</div>}
       {query.isError && <div className="chart-state">Datos no disponibles por ahora</div>}
       {query.isSuccess && !data.length && <div className="chart-state">Aún no hay datos</div>}
@@ -72,6 +100,7 @@ export function ChartCard({ title, subtitle, url, columns, rows = defaultRows as
       {data.length > 0 && !showTable && config && (
         <div className="chart-canvas" style={height ? { height: height(data) } : undefined}><ChartCanvas config={config} label={title} onChart={keep} /></div>
       )}
+      {data.length > 0 && !showTable && note}
       {data.length > 0 && showTable && (
         <div className="chart-table">
           <table aria-label={title}>

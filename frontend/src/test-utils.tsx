@@ -31,10 +31,15 @@ export const song = (over: Partial<Song> = {}): Song => ({
   ...over,
 });
 
-/** Responde según la ruta, sin parámetros. Una ruta sin respuesta falla la prueba de forma visible. */
+/**
+ * Responde según la ruta, sin parámetros. La clave puede llevar método ("POST /api/x") cuando una ruta sirve para
+ * varios. Una ruta sin respuesta falla la prueba de forma visible.
+ */
 export function routes(table: Record<string, unknown>) {
-  return async (path: string) => {
-    const key = path.split("?")[0];
+  return async (path: string, options?: { method?: string }) => {
+    const bare = path.split("?")[0];
+    const withMethod = `${options?.method ?? "GET"} ${bare}`;
+    const key = withMethod in table ? withMethod : bare;
     if (key in table) {
       const value = table[key];
       if (value instanceof Error) throw value;

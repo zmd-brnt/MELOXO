@@ -68,6 +68,11 @@ class ComposerRequestOut(BaseModel):
     created_at: datetime
 
 
+class ComposerRequestAdminOut(ComposerRequestOut):
+    user_name: str
+    user_email: str
+
+
 class AuditOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

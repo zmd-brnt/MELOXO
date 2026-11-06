@@ -9,6 +9,7 @@ from app.core.db import session_scope
 from app.core.errors import AppError
 from app.core.pagination import PageParams
 from app.module_users.models import AuditEntry, ComposerRequest, User
+from app.module_users.schemas import ComposerRequestOut
 
 
 async def write_audit(
@@ -149,17 +150,23 @@ async def list_my_requests(session: AsyncSession, user_id: UUID) -> list[Compose
 
 async def list_composer_requests(
     session: AsyncSession, params: PageParams, status: str | None
-) -> tuple[list[ComposerRequest], int]:
+) -> tuple[list[dict], int]:
     filters = [ComposerRequest.status == status] if status else []
     total = await session.scalar(select(func.count()).select_from(ComposerRequest).where(*filters))
     query = (
-        select(ComposerRequest)
+        select(ComposerRequest, User.display_name, User.email)
+        .join(User, User.id == ComposerRequest.user_id)
         .where(*filters)
         .order_by(ComposerRequest.created_at)
         .offset(params.offset)
         .limit(params.size)
     )
-    return list((await session.execute(query)).scalars()), total or 0
+    rows = (await session.execute(query)).all()
+    items = [
+        {**ComposerRequestOut.model_validate(item).model_dump(), "user_name": name, "user_email": email}
+        for item, name, email in rows
+    ]
+    return items, total or 0
 
 
 async def _lock_pending(session: AsyncSession, request_id: UUID) -> ComposerRequest:

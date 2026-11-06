@@ -34,15 +34,15 @@ Chart.register(
 );
 
 /**
- * Orden fijo, validado sobre el panel oscuro (#201F25) con el script de la skill dataviz: pasa banda de luminosidad,
+ * Orden fijo, validado sobre el fondo de las tarjetas (#2E2C35) con el script de la skill dataviz: pasa banda de luminosidad,
  * croma, daltonismo y contraste. Son tonos derivados de la marca; los de marca puros quedan fuera de la banda.
  */
 export const SERIES = ["#F0428A", "#B08600", "#009E8F", "#6172FF"] as const;
 
 const INK = "#F4F1EA";
 const MUTE = "#BDB9AF";
-const GRID = "#34323B";
-const SURFACE = "#201F25";
+export const GRID = "#3D3B45";
+export const SURFACE = "#2E2C35";
 
 Chart.defaults.color = MUTE;
 Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -55,6 +55,17 @@ Chart.defaults.plugins.tooltip.titleColor = INK;
 Chart.defaults.plugins.tooltip.bodyColor = INK;
 Chart.defaults.plugins.tooltip.borderColor = INK;
 Chart.defaults.plugins.tooltip.borderWidth = 1;
+
+/** Sin este fondo, el PNG exportado sale transparente y el texto claro no se lee. */
+Chart.register({
+  id: "surface",
+  beforeDraw({ ctx, width, height }) {
+    ctx.save();
+    ctx.fillStyle = SURFACE;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  },
+});
 
 export const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 

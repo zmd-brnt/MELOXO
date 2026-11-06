@@ -6,12 +6,20 @@ import { AppShell } from "./components/AppShell";
 import { NoticesBell } from "./components/NoticesBell";
 import { SearchBox } from "./components/SearchBox";
 import { Sidebar } from "./components/Sidebar";
+import { AdminLayout } from "./pages/admin/AdminLayout";
+import { Audit } from "./pages/admin/Audit";
+import { Catalog } from "./pages/admin/Catalog";
+import { Dashboard } from "./pages/admin/Dashboard";
+import { Health } from "./pages/admin/Health";
+import { Requests } from "./pages/admin/Requests";
+import { Users } from "./pages/admin/Users";
 import { Artist } from "./pages/Artist";
 import { Albums } from "./pages/composer/Albums";
 import { ComposerProfile } from "./pages/composer/Profile";
 import { ComposerStats } from "./pages/composer/Stats";
 import { TrackForm } from "./pages/composer/TrackForm";
 import { Tracks } from "./pages/composer/Tracks";
+import { Stats } from "./pages/Stats";
 import { Favorites } from "./pages/Favorites";
 import { History } from "./pages/History";
 import { Home } from "./pages/Home";
@@ -66,6 +74,17 @@ export function App() {
             <Route path="composer/profile" element={<ComposerProfile />} />
             <Route path="composer/stats" element={<ComposerStats />} />
           </Route>
+          <Route element={<RequireRole roles={["admin"]} />}>
+            <Route path="admin" element={<AdminLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="users" element={<Users />} />
+              <Route path="requests" element={<Requests />} />
+              <Route path="catalog" element={<Catalog />} />
+              <Route path="audit" element={<Audit />} />
+              <Route path="health" element={<Health />} />
+            </Route>
+          </Route>
+          <Route path="stats" element={<Stats />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

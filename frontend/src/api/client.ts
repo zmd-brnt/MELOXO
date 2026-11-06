@@ -91,7 +91,7 @@ async function toError(response: Response): Promise<ApiError> {
   );
 }
 
-export async function api<T = unknown>(path: string, options: Options = {}): Promise<T> {
+async function authorized(path: string, options: Options): Promise<Response> {
   let response = await send(path, options);
   if (response.status === 401 && !path.startsWith("/api/auth/")) {
     const original = accessToken;
@@ -106,8 +106,18 @@ export async function api<T = unknown>(path: string, options: Options = {}): Pro
     }
   }
   if (!response.ok) throw await toError(response);
+  return response;
+}
+
+export async function api<T = unknown>(path: string, options: Options = {}): Promise<T> {
+  const response = await authorized(path, options);
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+/** Para archivos que un enlace normal no puede pedir porque necesitan el token. */
+export async function download(path: string): Promise<Blob> {
+  return (await authorized(path, {})).blob();
 }
 
 /** `fetch` no informa el avance de una subida, por eso esta ruta usa XMLHttpRequest. */

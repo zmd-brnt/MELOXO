@@ -329,3 +329,27 @@ fieldset label { display: flex !important; flex-direction: row !important; align
 .upload-progress progress { flex: 1; accent-color: var(--yellow); height: 10px; }
 .stack-form select { min-height: 40px; padding: 8px 10px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 10px; font-weight: 400; }
 .plain-list li { padding: 7px 4px; font-weight: 600; }
+
+/* Administración */
+.subnav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.subnav a { padding: 6px 12px; border-radius: 999px; background: var(--panel-2); font-size: 13px; font-weight: 600; text-decoration: none; }
+.subnav a.active { background: var(--yellow); color: var(--ink); }
+.health { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; }
+.health li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel-2); border-radius: 10px; }
+.health b, .health small { display: block; }
+.health li[data-status="up"] svg { color: var(--teal); }
+.health li[data-status="down"] svg { color: var(--danger); }
+.health li[data-status="delayed"] svg { color: var(--yellow); }
+.health li[data-status="not_configured"] svg { color: var(--mute); }
+.table-wrap { overflow-x: auto; }
+.data { width: 100%; border-collapse: collapse; font-size: 14px; }
+.data th, .data td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); }
+.data select, .data input { min-height: 34px; padding: 4px 8px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 8px; }
+.cell-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0; font-size: 13px; }
+.requests { margin: 0; padding: 0; list-style: none; }
+.request { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.request p { margin: 4px 0; }
+.heat-scale { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 6px; color: var(--mute); font-size: 12px; }
+.heat-scale i { width: 96px; height: 8px; border-radius: 4px; background: linear-gradient(to right, rgba(240, 66, 138, .2), rgb(240, 66, 138)); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

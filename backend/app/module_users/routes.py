@@ -9,6 +9,7 @@ from app.core.pagination import PageParams, page_body, page_params
 from app.module_users import admin, service
 from app.module_users.schemas import (
     AuditOut,
+    ComposerRequestAdminOut,
     ComposerRequestIn,
     ComposerRequestOut,
     LoginIn,
@@ -84,7 +85,7 @@ async def list_requests(
     session: AsyncSession = Depends(get_session),
 ):
     items, total = await admin.list_composer_requests(session, params, status)
-    return page_body([ComposerRequestOut.model_validate(i) for i in items], total, params)
+    return page_body([ComposerRequestAdminOut.model_validate(i) for i in items], total, params)
 
 
 @router.post("/admin/composer-requests/{request_id}/approve", response_model=ComposerRequestOut)

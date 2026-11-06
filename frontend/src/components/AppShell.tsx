@@ -11,11 +11,17 @@ const nav: { to: string; label: string; icon: IconName }[] = [
   { to: "/stats", label: "Estadísticas", icon: "stats" },
 ];
 
+const roleNav: Record<string, { to: string; label: string; icon: IconName }> = {
+  composer: { to: "/composer", label: "Tu música", icon: "note" },
+  admin: { to: "/admin", label: "Administración", icon: "shield" },
+};
+
 type Props = { library?: ReactNode; nowPlaying?: ReactNode; player?: ReactNode; topActions?: ReactNode };
 
 export function AppShell({ library, nowPlaying, player, topActions }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const extra = user ? roleNav[user.role] : undefined;
   return (
     <div className="shell">
       <a className="skip" href="#content">Saltar al contenido</a>
@@ -24,7 +30,7 @@ export function AppShell({ library, nowPlaying, player, topActions }: Props) {
           <img className="brand" src={logo} alt="" />
         </Link>
         <nav className="nav">
-          {nav.map((item) => (
+          {(extra ? [...nav, extra] : nav).map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === "/"}>
               <Icon name={item.icon} />
               {item.label}

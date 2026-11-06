@@ -331,6 +331,16 @@ async def test_csv_export(client, admin, listener, make_song):
     assert "Luz de carretera" in lines[1]
 
 
+async def test_csv_export_by_hour(client, admin, listener, make_song):
+    await post_play(client, listener, await make_song())
+    await refresh()
+    r = await client.get("/api/admin/reports/plays-hourly.csv?days=2", headers=admin.headers)
+    assert r.status_code == 200
+    lines = r.text.strip().splitlines()
+    assert lines[0] == "bucket,plays"
+    assert lines[1].endswith(":00:00,1")
+
+
 async def test_csv_neutralizes_formulas(client, admin, listener, make_song):
     await post_play(client, listener, await make_song(title='=HYPERLINK("http://x")'))
     await refresh()

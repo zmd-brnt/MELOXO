@@ -19,6 +19,7 @@ SPA con React, Vite y TypeScript. FastAPI la sirve en producción, por eso el au
 | [`src/api/`](src/api/README.md) | Cliente HTTP y tipos |
 | [`src/assets/`](src/assets/README.md) | Logos |
 | [`src/auth/`](src/auth/README.md) | Sesión |
+| [`src/charts/`](src/charts/README.md) | Gráficas y exportación |
 | [`src/components/`](src/components/README.md) | Piezas reutilizables |
 | [`src/pages/`](src/pages/README.md) | Pantallas |
 | [`src/player/`](src/player/README.md) | Reproductor |

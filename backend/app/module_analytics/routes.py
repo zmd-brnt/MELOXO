@@ -201,6 +201,8 @@ async def _report_rows(name: str, session: AsyncSession, days: int, tz: str) -> 
             return await service.genres(session, days)
         case "plays":
             return await service.plays(session, "day", days, tz)
+        case "plays-hourly":
+            return await service.plays(session, "hour", days, tz)
         case "heatmap":
             return await service.heatmap(session, days, tz)
         case "catalog-sources":
