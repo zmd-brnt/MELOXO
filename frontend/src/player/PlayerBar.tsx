@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
+import { useAddSong } from "../components/AddSong";
 import { Icon } from "../components/Icon";
 import { Tape } from "../components/Tape";
 import { clock } from "./format";
@@ -175,7 +176,8 @@ function FullScreen({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function PlayerBar({ extra }: { extra?: ReactNode }) {
+export function PlayerBar() {
+  const addSong = useAddSong();
   const { current, volume, setVolume, notice, dismissNotice } = usePlayer();
   const favorite = useFavorite(current?.id);
   const [full, setFull] = useState(false);
@@ -203,7 +205,15 @@ export function PlayerBar({ extra }: { extra?: ReactNode }) {
         >
           <Icon name="heart" filled={favorite.isFavorite} />
         </button>
-        {extra}
+        <button
+          className="plain"
+          type="button"
+          aria-label="Agregar a un casete o playlist"
+          disabled={!current}
+          onClick={() => current && addSong(current)}
+        >
+          <Icon name="plus" />
+        </button>
       </div>
       <div className="bar-center">
         <Transport />

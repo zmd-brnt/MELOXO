@@ -14,7 +14,7 @@ const nav: { to: string; label: string; icon: IconName }[] = [
 type Props = { library?: ReactNode; nowPlaying?: ReactNode; player?: ReactNode; topActions?: ReactNode };
 
 export function AppShell({ library, nowPlaying, player, topActions }: Props) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   return (
     <div className="shell">
@@ -42,15 +42,9 @@ export function AppShell({ library, nowPlaying, player, topActions }: Props) {
             <Icon name="right" />
           </button>
           <div className="top-actions">{topActions}</div>
-          <button
-            className="round avatar"
-            type="button"
-            aria-label={`Cerrar sesión de ${user?.display_name}`}
-            title="Cerrar sesión"
-            onClick={() => void logout()}
-          >
+          <Link className="round avatar" to="/profile" aria-label={`Tu perfil, ${user?.display_name}`}>
             {user?.display_name.slice(0, 1).toUpperCase()}
-          </button>
+          </Link>
         </header>
         <div id="content" className="content" tabIndex={-1}>
           <Outlet />

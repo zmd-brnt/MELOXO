@@ -29,4 +29,4 @@ El elemento `<audio>` no dice por qué falló. `recoverStream` pide un ticket nu
 
 ## Crédito
 
-`Credit` en `NowPanel.tsx` muestra artista, Jamendo y licencia con enlace. La licencia de Jamendo lo exige: no lo quites.
+`Attribution` en `components/` muestra artista, Jamendo y licencia con enlace. La licencia de Jamendo lo exige: no lo quites.
