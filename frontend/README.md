@@ -24,3 +24,7 @@ SPA con React, Vite y TypeScript. FastAPI la sirve en producción, por eso el au
 | [`src/pages/`](src/pages/README.md) | Pantallas |
 | [`src/player/`](src/player/README.md) | Reproductor |
 | [`src/styles/`](src/styles/README.md) | Tokens y estilos |
+
+## Pruebas de navegador
+
+Ver [`e2e/`](e2e/README.md). Necesitan el stack de Docker en marcha.

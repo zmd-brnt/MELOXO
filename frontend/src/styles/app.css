@@ -341,7 +341,7 @@ fieldset label { display: flex !important; flex-direction: row !important; align
 .health li[data-status="down"] svg { color: var(--danger); }
 .health li[data-status="delayed"] svg { color: var(--yellow); }
 .health li[data-status="not_configured"] svg { color: var(--mute); }
-.table-wrap { overflow-x: auto; }
+.table-wrap { position: relative; overflow-x: auto; }
 .data { width: 100%; border-collapse: collapse; font-size: 14px; }
 .data th, .data td { padding: 8px; text-align: left; border-bottom: 1px solid var(--line); }
 .data select, .data input { min-height: 34px; padding: 4px 8px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 8px; }
@@ -353,3 +353,69 @@ fieldset label { display: flex !important; flex-direction: row !important; align
 .heat-scale { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 6px; color: var(--mute); font-size: 12px; }
 .heat-scale i { width: 96px; height: 8px; border-radius: 4px; background: linear-gradient(to right, rgba(240, 66, 138, .2), rgb(240, 66, 138)); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Teléfono: el corte coincide con useCompact.ts */
+.nav-short, .only-compact { display: none; }
+
+@media (max-width: 900px) {
+  a.only-compact { display: inline-flex; }
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 6px;
+    padding: max(6px, env(safe-area-inset-top)) 6px max(4px, env(safe-area-inset-bottom));
+  }
+  .center { grid-row: 1; box-shadow: 3px 3px 0 var(--pink); }
+  .player { grid-row: 2; }
+  .side { display: contents; }
+  .side > a, .side-library, .now, .top-forward { display: none; }
+
+  .nav { grid-row: 3; display: flex; gap: 2px; }
+  .nav a { flex: 1 1 0; min-width: 0; min-height: 50px; flex-direction: column; justify-content: center; gap: 2px; padding: 4px 2px; font-size: 11px; }
+  .nav a.active { color: var(--yellow); background: none; }
+  .nav-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .nav-short { display: block; }
+
+  .top { padding: 8px 8px 0; }
+  .content { padding: 10px; }
+  .page-title { font-size: 22px; overflow-wrap: anywhere; }
+
+  /* Tamaños táctiles, y 16 px para que el teclado no acerque la página */
+  .plain, .round { width: 44px; height: 44px; }
+  .search { height: 44px; }
+  .primary, .ghost, .subnav a, .pills button { min-height: 44px; }
+  .subnav a { display: inline-flex; align-items: center; }
+  .link { min-height: 44px; min-width: 44px; }
+  input, select, textarea { font-size: 16px; }
+
+  .bar-compact { position: relative; display: flex; gap: 6px; height: 60px; padding: 0 8px 0 0; overflow: visible; }
+  .mini { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; height: 100%; padding: 0 0 0 8px; border: 0; border-radius: 12px; background: none; text-align: left; }
+  .mini .cover-sm { width: 44px; height: 44px; }
+  .bar-compact .play { width: 44px; height: 44px; margin: 0; }
+  .mini-progress { position: absolute; left: 10px; bottom: 0; max-width: calc(100% - 20px); height: 2px; background: var(--yellow); }
+  .toast { left: 8px; right: 8px; transform: none; white-space: normal; }
+
+  .player-sheet { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; box-shadow: none; }
+  .player-sheet[open] { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .player-sheet .sheet-head { width: 100%; }
+  .sheet-tape { width: min(300px, 74vw); margin: 6px 0; }
+  .player-sheet h2 { font-size: 20px; text-align: center; overflow-wrap: anywhere; }
+  .player-sheet section, .player-sheet .now-note { width: 100%; }
+  .sheet-tools { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+  .sheet-tools .volume { flex: 1; max-width: 160px; }
+
+  /* Sin esto, las acciones de cada fila quedarían fuera de la pantalla */
+  .data thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .data, .data tbody, .data tr, .data td { display: block; width: 100%; }
+  .data tr { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .data td { padding: 3px 0; border: 0; overflow-wrap: anywhere; }
+  .data td:first-child { font-weight: 700; }
+  .cell-actions { display: flex; justify-content: flex-start; }
+  .data select { min-height: 44px; }
+
+  /* Pista de casete: el título ocupa su línea y las acciones bajan a la siguiente */
+  .tracks .song { flex-wrap: wrap; }
+  .tracks .song-text { flex-basis: calc(100% - 64px); }
+  .tracks .song-time { margin-right: auto; margin-left: 54px; }
+  .player-sheet > * { flex: none; }
+}

@@ -16,3 +16,7 @@ dist/
 
 # Datos locales
 media/
+
+# Pruebas de navegador
+frontend/e2e/.results/
+frontend/e2e/.state.json

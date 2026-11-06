@@ -3,11 +3,14 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useAddSong } from "../components/AddSong";
+import { Attribution } from "../components/Attribution";
 import { Icon } from "../components/Icon";
+import { Note } from "../components/Note";
 import { Tape } from "../components/Tape";
 import { clock } from "./format";
 import { usePlayer } from "./PlayerProvider";
 import { Reels } from "./Reels";
+import { useCompact } from "./useCompact";
 
 const repeatLabels = { off: "Repetir: apagado", all: "Repetir: toda la cola", one: "Repetir: esta pista" } as const;
 const nextRepeat = { off: "all", all: "one", one: "off" } as const;
@@ -176,12 +179,167 @@ function FullScreen({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function PlayerBar() {
-  const addSong = useAddSong();
-  const { current, volume, setVolume, notice, dismissNotice } = usePlayer();
+function FavoriteButton() {
+  const { current } = usePlayer();
   const favorite = useFavorite(current?.id);
-  const [full, setFull] = useState(false);
+  return (
+    <button
+      className={favorite.isFavorite ? "plain on" : "plain"}
+      type="button"
+      aria-label={favorite.isFavorite ? "Quitar de favoritas" : "Agregar a favoritas"}
+      aria-pressed={favorite.isFavorite}
+      disabled={!current || favorite.busy}
+      onClick={favorite.toggle}
+    >
+      <Icon name="heart" filled={favorite.isFavorite} />
+    </button>
+  );
+}
+
+function AddButton() {
+  const addSong = useAddSong();
+  const { current } = usePlayer();
+  return (
+    <button
+      className="plain"
+      type="button"
+      aria-label="Agregar a un casete o playlist"
+      disabled={!current}
+      onClick={() => current && addSong(current)}
+    >
+      <Icon name="plus" />
+    </button>
+  );
+}
+
+function Volume() {
+  const { volume, setVolume } = usePlayer();
   const lastVolume = useRef(volume || 0.8);
+  return (
+    <>
+      <button
+        className="plain"
+        type="button"
+        aria-label={volume === 0 ? "Activar sonido" : "Silenciar"}
+        onClick={() => {
+          if (volume > 0) lastVolume.current = volume;
+          setVolume(volume === 0 ? lastVolume.current : 0);
+        }}
+      >
+        <Icon name={volume === 0 ? "mute" : "volume"} />
+      </button>
+      <input
+        className="band volume"
+        type="range"
+        min={0}
+        max={1}
+        step={0.01}
+        value={volume}
+        aria-label="Volumen"
+        aria-valuetext={`${Math.round(volume * 100)} %`}
+        style={{ "--fill": `${volume * 100}%` } as React.CSSProperties}
+        onChange={(event) => setVolume(Number(event.target.value))}
+      />
+    </>
+  );
+}
+
+function Notice() {
+  const { notice, dismissNotice } = usePlayer();
+  if (!notice) return null;
+  return (
+    <div className="toast" role="status">
+      {notice}
+      <button className="plain" type="button" aria-label="Cerrar aviso" onClick={dismissNotice}><Icon name="close" /></button>
+    </div>
+  );
+}
+
+function PlayerSheet({ onClose }: { onClose: () => void }) {
+  const { current, context } = usePlayer();
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      className="sheet player-sheet"
+      aria-label="Reproductor"
+      onClose={onClose}
+      // Un enlace lleva a otra pantalla: la hoja no debe quedar tapándola.
+      onClick={(event) => (event.target as Element).closest("a") && dialog.current?.close()}
+    >
+      <header className="sheet-head">
+        <b>{current?.side ? `Sonando · Lado ${current.side}` : "Sonando"}</b>
+        <button className="plain" type="button" aria-label="Cerrar reproductor" onClick={() => dialog.current?.close()}><Icon name="down" /></button>
+      </header>
+      <Tape title={context?.title ?? current?.title ?? "Nada todavía"} color={context?.color ?? "cobalt"} tilt={-2} className="sheet-tape" />
+      {current ? (
+        <>
+          <h2>{current.title}</h2>
+          <Attribution song={current} />
+        </>
+      ) : (
+        <p className="muted">Cuando pongas algo, aparece aquí.</p>
+      )}
+      <Seek />
+      <Transport />
+      <div className="sheet-tools">
+        <FavoriteButton />
+        <AddButton />
+        <Volume />
+      </div>
+      {current?.dedication && (
+        <Note tape className="now-note">
+          {current.dedication}
+          <small>Dedicatoria de {current.dedicatedBy}</small>
+        </Note>
+      )}
+      <section aria-label="Cola">
+        <h3>Sigue</h3>
+        <QueueList />
+      </section>
+    </dialog>
+  );
+}
+
+function CompactBar() {
+  const { current, isPlaying, position, duration, toggle } = usePlayer();
+  const [open, setOpen] = useState(false);
+  const opener = useRef<HTMLButtonElement>(null);
+  const progress = duration ? Math.min(1, position / duration) : 0;
+  return (
+    <div className="bar bar-compact">
+      <button ref={opener} className="mini" type="button" aria-label="Abrir reproductor" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+        <span className="cover-sm" style={current?.cover_url ? { backgroundImage: `url(${current.cover_url})` } : undefined} />
+        <span className="bar-title">
+          {current && <b>{current.title}</b>}
+          <small>{current ? current.artist : "Elige una pista para empezar"}</small>
+        </span>
+      </button>
+      <button className="play" type="button" aria-label={isPlaying ? "Pausar" : "Reproducir"} onClick={toggle} disabled={!current}>
+        <Icon name={isPlaying ? "pause" : "play"} filled={!isPlaying} />
+      </button>
+      <span className="mini-progress" style={{ width: `${progress * 100}%` }} />
+      <Notice />
+      {open && (
+        <PlayerSheet
+          onClose={() => {
+            setOpen(false);
+            opener.current?.focus();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function WideBar() {
+  const { current } = usePlayer();
+  const [full, setFull] = useState(false);
 
   return (
     <div className="bar">
@@ -195,25 +353,8 @@ export function PlayerBar() {
         ) : (
           <div className="bar-title"><small>Elige una pista para empezar</small></div>
         )}
-        <button
-          className={favorite.isFavorite ? "plain on" : "plain"}
-          type="button"
-          aria-label={favorite.isFavorite ? "Quitar de favoritas" : "Agregar a favoritas"}
-          aria-pressed={favorite.isFavorite}
-          disabled={!current || favorite.busy}
-          onClick={favorite.toggle}
-        >
-          <Icon name="heart" filled={favorite.isFavorite} />
-        </button>
-        <button
-          className="plain"
-          type="button"
-          aria-label="Agregar a un casete o playlist"
-          disabled={!current}
-          onClick={() => current && addSong(current)}
-        >
-          <Icon name="plus" />
-        </button>
+        <FavoriteButton />
+        <AddButton />
       </div>
       <div className="bar-center">
         <Transport />
@@ -228,40 +369,17 @@ export function PlayerBar() {
           )}
         </Popover>
         <Popover label="Cola" icon="queue"><QueueList /></Popover>
-        <button
-          className="plain"
-          type="button"
-          aria-label={volume === 0 ? "Activar sonido" : "Silenciar"}
-          onClick={() => {
-            if (volume > 0) lastVolume.current = volume;
-            setVolume(volume === 0 ? lastVolume.current : 0);
-          }}
-        >
-          <Icon name={volume === 0 ? "mute" : "volume"} />
-        </button>
-        <input
-          className="band volume"
-          type="range"
-          min={0}
-          max={1}
-          step={0.01}
-          value={volume}
-          aria-label="Volumen"
-          aria-valuetext={`${Math.round(volume * 100)} %`}
-          style={{ "--fill": `${volume * 100}%` } as React.CSSProperties}
-          onChange={(event) => setVolume(Number(event.target.value))}
-        />
+        <Volume />
         <button className="plain" type="button" aria-label="Pantalla completa" disabled={!current} onClick={() => setFull(true)}>
           <Icon name="expand" />
         </button>
       </div>
-      {notice && (
-        <div className="toast" role="status">
-          {notice}
-          <button className="plain" type="button" aria-label="Cerrar aviso" onClick={dismissNotice}><Icon name="close" /></button>
-        </div>
-      )}
+      <Notice />
       {full && <FullScreen onClose={() => setFull(false)} />}
     </div>
   );
+}
+
+export function PlayerBar() {
+  return useCompact() ? <CompactBar /> : <WideBar />;
 }

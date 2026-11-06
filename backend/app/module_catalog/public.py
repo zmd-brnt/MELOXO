@@ -1,4 +1,6 @@
 """Interfaz pública de module_catalog. Solo tipos simples; cada función abre su sesión."""
+import asyncio
+import time
 from datetime import datetime
 from uuid import UUID
 
@@ -12,6 +14,10 @@ from app.module_catalog.models import Artist, Song
 from app.module_catalog.publishing import publish_due_tracks
 from app.module_catalog.schemas import ArtistSummary, PublishedRelease, ReleaseCounts, SongSummary, UpcomingRelease
 from app.module_catalog.service import to_artist_summary, to_summary
+
+JAMENDO_PING_SECONDS = 1.5
+JAMENDO_STATUS_SECONDS = 60
+_jamendo_status: dict[str, tuple[float, str]] = {}
 
 __all__ = [
     "ArtistSummary",
@@ -103,11 +109,23 @@ async def release_counts(owner_id: UUID | None = None) -> ReleaseCounts:
     return ReleaseCounts(scheduled=counts.get("scheduled", 0), published=counts.get("published", 0))
 
 
-async def jamendo_status() -> str:
-    if not get_settings().JAMENDO_CLIENT_ID:
-        return "not_configured"
+async def _ask_jamendo() -> str:
     try:
-        await JamendoClient().ping()
+        await asyncio.wait_for(JamendoClient().ping(), JAMENDO_PING_SECONDS)
+    except TimeoutError:
+        return "delayed"
     except JamendoError:
         return "down"
     return "up"
+
+
+async def jamendo_status() -> str:
+    """Se guarda un minuto: cada panel abierto pregunta cada 15 s y Jamendo es un servicio externo."""
+    if not get_settings().JAMENDO_CLIENT_ID:
+        return "not_configured"
+    saved = _jamendo_status.get("value")
+    if saved and time.monotonic() - saved[0] < JAMENDO_STATUS_SECONDS:
+        return saved[1]
+    status = await _ask_jamendo()
+    _jamendo_status["value"] = (time.monotonic(), status)
+    return status

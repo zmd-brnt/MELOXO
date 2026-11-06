@@ -4,16 +4,19 @@ import logo from "../assets/meloxo-horizontal-color-dark.svg";
 import { useAuth } from "../auth/AuthContext";
 import { Icon, type IconName } from "./Icon";
 
-const nav: { to: string; label: string; icon: IconName }[] = [
+/** `short` es lo que se lee en las pestañas del teléfono. El nombre accesible sigue siendo `label`. */
+type NavItem = { to: string; label: string; short?: string; icon: IconName };
+
+const nav: NavItem[] = [
   { to: "/", label: "Inicio", icon: "home" },
   { to: "/search", label: "Buscar", icon: "search" },
-  { to: "/library", label: "Tu biblioteca", icon: "library" },
+  { to: "/library", label: "Tu biblioteca", short: "Biblioteca", icon: "library" },
   { to: "/stats", label: "Estadísticas", icon: "stats" },
 ];
 
-const roleNav: Record<string, { to: string; label: string; icon: IconName }> = {
-  composer: { to: "/composer", label: "Tu música", icon: "note" },
-  admin: { to: "/admin", label: "Administración", icon: "shield" },
+const roleNav: Record<string, NavItem> = {
+  composer: { to: "/composer", label: "Tu música", short: "Música", icon: "note" },
+  admin: { to: "/admin", label: "Administración", short: "Admin", icon: "shield" },
 };
 
 type Props = { library?: ReactNode; nowPlaying?: ReactNode; player?: ReactNode; topActions?: ReactNode };
@@ -33,18 +36,19 @@ export function AppShell({ library, nowPlaying, player, topActions }: Props) {
           {(extra ? [...nav, extra] : nav).map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === "/"}>
               <Icon name={item.icon} />
-              {item.label}
+              <span className={item.short ? "nav-long" : undefined}>{item.label}</span>
+              {item.short && <span className="nav-short" aria-hidden="true">{item.short}</span>}
             </NavLink>
           ))}
         </nav>
-        {library}
+        <div className="side-library">{library}</div>
       </aside>
       <main className="panel center">
         <header className="top">
           <button className="round" type="button" aria-label="Atrás" onClick={() => navigate(-1)}>
             <Icon name="left" />
           </button>
-          <button className="round" type="button" aria-label="Adelante" onClick={() => navigate(1)}>
+          <button className="round top-forward" type="button" aria-label="Adelante" onClick={() => navigate(1)}>
             <Icon name="right" />
           </button>
           <div className="top-actions">{topActions}</div>

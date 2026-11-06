@@ -25,7 +25,8 @@ from argon2 import PasswordHasher  # noqa: E402
 
 from app.core import security  # noqa: E402
 from app.core.db import Base, get_engine, load_models, session_scope  # noqa: E402
-from app.main import create_app  # noqa: E402
+from app.main import create_app
+from app.module_catalog import public as catalog_public  # noqa: E402
 from app.module_users.service import login_limiter  # noqa: E402
 
 
@@ -60,6 +61,7 @@ async def db_clean():
         async with get_engine().begin() as conn:
             await conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
     login_limiter._failures.clear()
+    catalog_public._jamendo_status.clear()
     yield
 
 

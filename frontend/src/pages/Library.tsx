@@ -5,6 +5,7 @@ import { api, ApiError } from "../api/client";
 import { useFollows, useInviteActions, usePendingInvites, usePlaylists, useTapes } from "../api/queries";
 import type { PlaylistSummary } from "../api/types";
 import { Note } from "../components/Note";
+import { Icon } from "../components/Icon";
 import { TapePile } from "../components/TapePile";
 
 function NewPlaylist() {
@@ -56,6 +57,8 @@ export function Library() {
         </Note>
       ))}
       <h2>Casetes</h2>
+      {/* En escritorio este botón ya está en la barra lateral. */}
+      <Link className="primary only-compact" to="/tapes/new"><Icon name="plus" />Crear casete</Link>
       {tapes.data?.length ? <TapePile tapes={tapes.data} /> : <p className="muted">Aún no tienes casetes. <Link to="/tapes/new">Crea uno</Link></p>}
       <h2>Playlists</h2>
       <NewPlaylist />

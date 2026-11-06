@@ -95,7 +95,8 @@ export const lineStyle = (color: string) => ({
   pointHoverRadius: 5,
   pointHoverBorderColor: SURFACE,
   pointHoverBorderWidth: 2,
-  tension: 0.25,
+  // Monótona: una curva libre sube más allá del dato real y baja de cero entre días sin actividad.
+  cubicInterpolationMode: "monotone" as const,
 });
 
 export const noGridX = { x: { grid: { display: false } } };

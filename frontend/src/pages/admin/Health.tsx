@@ -25,9 +25,10 @@ export function HealthCards() {
     refetchInterval: 15000,
   });
   if (health.isError) return <p className="muted">Datos no disponibles por ahora</p>;
+  if (health.isPending) return <p className="muted" role="status">Consultando servicios…</p>;
   return (
     <ul className="health" aria-label="Salud del sistema">
-      {health.data?.services.map((service) => {
+      {health.data.services.map((service) => {
         const state = states[service.status] ?? { label: service.status, icon: "bell" as const };
         return (
           <li key={service.name} data-status={service.status}>
