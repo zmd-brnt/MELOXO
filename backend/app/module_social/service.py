@@ -12,6 +12,7 @@ from app.module_catalog.public import (
     ArtistSummary,
     get_artists,
     get_songs,
+    missing_song,
     published_since,
     upcoming_for_artists,
 )
@@ -48,7 +49,7 @@ async def list_favorites(session: AsyncSession, user: CurrentUser, params: PageP
     ids = list((await session.execute(query)).scalars())
     await session.commit()  # Suelta la conexión mientras catálogo abre la suya.
     songs = await get_songs(ids)
-    return page_body([songs[i] for i in ids if i in songs], total, params)
+    return page_body([songs.get(i) or missing_song(i) for i in ids], total, params)
 
 
 async def favorite_ids(session: AsyncSession, user: CurrentUser) -> list[UUID]:

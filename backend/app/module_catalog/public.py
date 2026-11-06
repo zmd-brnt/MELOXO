@@ -21,6 +21,7 @@ JAMENDO_STATUS_SECONDS = 60
 _jamendo_status: dict[str, tuple[float, str]] = {}
 
 __all__ = [
+    "missing_song",
     "DemoComposer",
     "DemoTrack",
     "ListenableSong",
@@ -46,6 +47,26 @@ __all__ = [
     "songs_owned_by",
     "upcoming_for_artists",
 ]
+
+
+def missing_song(song_id: UUID) -> SongSummary:
+    """Lo que muestra una lista de una pista que ya no existe y de la que no guardó metadatos."""
+    return SongSummary(
+        id=song_id,
+        title="Pista eliminada",
+        artist_id=UUID(int=0),
+        artist="",
+        album=None,
+        duration=0,
+        cover_url=None,
+        source="local",
+        license="",
+        license_url=None,
+        jamendo_url=None,
+        genres=(),
+        status="deleted",
+        available=False,
+    )
 
 
 async def get_songs(ids: list[UUID]) -> dict[UUID, SongSummary]:

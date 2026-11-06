@@ -60,6 +60,18 @@ async def test_hidden_favorite_marked_unavailable(client, admin, listener, make_
     assert item["available"] is False
 
 
+async def test_deleted_favorite_marked_unavailable(client, composer, listener, make_song):
+    song = await make_song(owner=composer.id)
+    kept = await make_song(title="Sigue")
+    await client.put(f"/api/favorites/{song.id}", headers=listener.headers)
+    await client.put(f"/api/favorites/{kept.id}", headers=listener.headers)
+    await client.delete(f"/api/composer/tracks/{song.id}", headers=composer.headers)
+    body = (await client.get("/api/favorites", headers=listener.headers)).json()
+    assert body["total"] == len(body["items"]) == 2
+    gone = next(i for i in body["items"] if i["id"] == str(song.id))
+    assert gone["available"] is False
+
+
 async def test_follow_jamendo_and_composer_artists(client, listener, composer, make_song):
     jamendo = await make_song(artist="Remoto", source="jamendo")
     local = await make_song(artist="Local", owner=composer.id)
