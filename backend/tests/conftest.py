@@ -5,7 +5,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TEST_DB = "meloxo_test"
-_base = "postgresql+asyncpg://meloxo:meloxo_dev@localhost:5433"
+
+
+def _postgres_password() -> str:
+    """La misma clave que usa docker compose: nunca escrita en un archivo versionado."""
+    if password := os.environ.get("POSTGRES_PASSWORD"):
+        return password
+    for line in (ROOT.parent / ".env").read_text().splitlines():
+        if line.startswith("POSTGRES_PASSWORD="):
+            return line.split("=", 1)[1].strip()
+    raise RuntimeError("Falta POSTGRES_PASSWORD en .env")
+
+
+_base = f"postgresql+asyncpg://meloxo:{_postgres_password()}@localhost:5433"
 os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", f"{_base}/{TEST_DB}")
 os.environ["JWT_SECRET"] = "secreto-de-pruebas-con-longitud-suficiente-para-hs256"
 os.environ["DISABLE_SCHEDULER"] = "1"
@@ -35,7 +47,7 @@ security._hasher = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)  # 
 
 async def _ensure_database():
     conn = await asyncpg.connect(
-        host="localhost", port=5433, user="meloxo", password="meloxo_dev", database="meloxo"
+        host="localhost", port=5433, user="meloxo", password=_postgres_password(), database="meloxo"
     )
     try:
         exists = await conn.fetchval("SELECT 1 FROM pg_database WHERE datname=$1", TEST_DB)
