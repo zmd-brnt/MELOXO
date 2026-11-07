@@ -1,20 +1,14 @@
 # Diseño · Rama `01-monolito`
 
-Documento de diseño de la primera rama de MELOXO. Complementa al PRD (`docs/prd.md`), que sigue siendo la fuente
-de los criterios de aceptación. Aquí se registra qué se construye en esta rama, cómo, y qué se deja para después.
+Documento de diseño de la primera rama de MELOXO. Complementa al PRD (`docs/prd.md`), que sigue siendo la fuente de los criterios de aceptación. Aquí se registra qué se construye en esta rama, cómo, y qué se deja para después.
 
-Las decisiones marcadas **(equipo)** las tomó el usuario. Las marcadas **(constructor)** las propuso quien diseña y
-pueden corregirse.
+Las decisiones marcadas **(equipo)** las tomó el usuario. Las marcadas **(constructor)** las propuso quien diseña y pueden corregirse.
 
 ## 1. Intención
 
-MELOXO es streaming musical cuya unidad central es el **casete compartido**: "música para compartir en pequeño, no para
-exhibir en grande". No hay feed, seguidores de personas, likes públicos ni recomendaciones.
+MELOXO es streaming musical cuya unidad central es el **casete compartido**: "música para compartir en pequeño, no para exhibir en grande". No hay feed, seguidores de personas, likes públicos ni recomendaciones.
 
-`01-monolito` entrega **el producto completo funcionando en un solo proceso**. Las ramas 02 a 04 lo separan en servicios
-y lo endurecen, sin agregar funciones nuevas. Por eso el valor de esta rama está en dos cosas: que todas las funciones
-existan, y que las fronteras entre módulos sean reales, para que partirlo en la rama 02 sea cambiar llamadas a funciones
-por llamadas HTTP.
+`01-monolito` entrega **el producto completo funcionando en un solo proceso**. Las ramas 02 a 04 lo separan en servicios y lo endurecen, sin agregar funciones nuevas. Por eso el valor de esta rama está en dos cosas: que todas las funciones existan, y que las fronteras entre módulos sean reales, para que partirlo en la rama 02 sea cambiar llamadas a funciones por llamadas HTTP.
 
 No hay criterios externos de entrega. El alcance de este documento es el criterio.
 
@@ -32,8 +26,7 @@ No hay criterios externos de entrega. El alcance de este documento es el criteri
 
 **No objetivos**
 
-- Lo que el PRD deja fuera de alcance: ML, transcodificación, pagos, apps nativas, moderación automática, formatos
-  distintos de MP3.
+- Lo que el PRD deja fuera de alcance: ML, transcodificación, pagos, apps nativas, moderación automática, formatos distintos de MP3.
 - **F4.7, la sala de escucha sincronizada: fuera de esta rama (equipo).**
 - Redis, gateway, réplicas, circuit breaker y Redis Streams: pertenecen a las ramas 02 a 04.
 
@@ -65,13 +58,9 @@ No hay criterios externos de entrega. El alcance de este documento es el criteri
 
 **Se cumplen completos**
 
-F2.5 (caída de Jamendo), idempotencia de `playback_id`, límites de casete con `409`, protección del último administrador,
-publicación programada con `SKIP LOCKED` y demos 3 a 9. La demo 8 corre con dos procesos de la misma app. La demo 9 es
-la carga de 50 clientes con `locust`.
+F2.5 (caída de Jamendo), idempotencia de `playback_id`, límites de casete con `409`, protección del último administrador, publicación programada con `SKIP LOCKED` y demos 3 a 9. La demo 8 corre con dos procesos de la misma app. La demo 9 es la carga de 50 clientes con `locust`.
 
-**F2.3 y la demo 9 se miden solo con pistas `local` (constructor).** El tiempo al primer byte de una pista de Jamendo depende
-de un tercero, y 50 clientes serían una prueba de carga contra un servicio ajeno con una llave no comercial. El proxy de
-Jamendo se verifica aparte, con pocas peticiones. El resultado de la demo 9 debe decir esto expresamente.
+**F2.3 y la demo 9 se miden solo con pistas `local` (constructor).** El tiempo al primer byte de una pista de Jamendo depende de un tercero, y 50 clientes serían una prueba de carga contra un servicio ajeno con una llave no comercial. El proxy de Jamendo se verifica aparte, con pocas peticiones. El resultado de la demo 9 debe decir esto expresamente.
 
 ## 5. Stack
 
@@ -90,8 +79,7 @@ Jamendo se verifica aparte, con pocas peticiones. El resultado de la demo 9 debe
 | Pruebas | pytest contra PostgreSQL real, Vitest en frontend | Constructor |
 | Carga | `locust` | Constructor (el PRD permite `locust` o `k6`) |
 
-Se usa FastAPI asíncrono porque el streaming mantiene conexiones largas y el criterio F2.3 pide 50 clientes concurrentes
-sin degradar `GET /api/songs`.
+Se usa FastAPI asíncrono porque el streaming mantiene conexiones largas y el criterio F2.3 pide 50 clientes concurrentes sin degradar `GET /api/songs`.
 
 Las pruebas usan PostgreSQL real, no SQLite ni simulaciones, porque los criterios críticos dependen de bloqueos reales.
 
@@ -112,13 +100,11 @@ Monolito modular **(equipo)**: un proceso, una base, seis módulos con los nombr
 
 1. Cada módulo solo consulta sus propias tablas.
 2. Sin llaves foráneas entre módulos: las referencias externas son ids sueltos.
-3. Un módulo expone funciones públicas en `public.py`, y los demás solo importan de ahí. Eso es lo que en la rama 02 se
-   vuelve cliente HTTP.
+3. Un módulo expone funciones públicas en `public.py`, y los demás solo importan de ahí. Eso es lo que en la rama 02 se vuelve cliente HTTP.
 4. La frontera se verifica con una prueba automática de importaciones que falla si se rompe la regla 3.
 5. `public.py` acepta y devuelve esquemas simples, nunca objetos del ORM, para que sean serializables.
 
-**Excepción explícita:** `modules/analytics` no lee las tablas de `modules/playback`. Recibe datos por la interfaz pública
-de playback, igual que recibirá eventos en la rama 04.
+**Excepción explícita:** `modules/analytics` no lee las tablas de `modules/playback`. Recibe datos por la interfaz pública de playback, igual que recibirá eventos en la rama 04.
 
 **Tareas periódicas**, dentro del mismo proceso:
 
@@ -130,8 +116,7 @@ de playback, igual que recibirá eventos en la rama 04.
 
 Las tareas deben ser seguras con dos procesos corriendo a la vez. La demo 8 lo prueba.
 
-**Avisos:** se calculan al leer, como dice el PRD. `modules/social` cruza artistas seguidos con pistas publicadas, usando
-la interfaz pública de catálogo. No hace falta un bus de eventos en esta rama. El cliente consulta cada 30 s.
+**Avisos:** se calculan al leer, como dice el PRD. `modules/social` cruza artistas seguidos con pistas publicadas, usando la interfaz pública de catálogo. No hace falta un bus de eventos en esta rama. El cliente consulta cada 30 s.
 
 ## 7. API
 
@@ -143,18 +128,13 @@ Las rutas, códigos y formatos son los del PRD (sección 6). Reglas comunes:
 
 Rutas no nombradas en el PRD quedan a criterio del constructor, siguiendo sus prefijos: `/api/admin/*`, `/api/composer/*`.
 
-**Progreso de reproducción (constructor).** F3.1 envía el evento tras 10 s, y F3.2 cuenta cualquier reenvío del mismo
-`playback_id` como duplicado. Pero la gráfica de retención (10 s, 50 %, 100 %) necesita saber hasta dónde se escuchó. Se
-resuelve con una ruta aparte, `PATCH /api/playbacks/{playback_id}/progress`, que solo aumenta `listened_seconds` y no
-cuenta como reproducción ni como duplicado.
+**Progreso de reproducción (constructor).** F3.1 envía el evento tras 10 s, y F3.2 cuenta cualquier reenvío del mismo `playback_id` como duplicado. Pero la gráfica de retención (10 s, 50 %, 100 %) necesita saber hasta dónde se escuchó. Se resuelve con una ruta aparte, `PATCH /api/playbacks/{playback_id}/progress`, que solo aumenta `listened_seconds` y no cuenta como reproducción ni como duplicado.
 
 ## 8. Seguridad
 
 - JWT HS256 con `sub`, `role` y `exp` de 15 min, más refresh token.
-- En cada petición se valida el token **y se consulta en base el estado y rol actual del usuario**. Esto sustituye la
-  lista de revocación en Redis y cumple "pierde acceso de inmediato".
-- Las reglas de ruta del PRD (sección 12) se aplican en una dependencia de FastAPI, además de revisar propiedad del
-  recurso en cada módulo.
+- En cada petición se valida el token **y se consulta en base el estado y rol actual del usuario**. Esto sustituye la lista de revocación en Redis y cumple "pierde acceso de inmediato".
+- Las reglas de ruta del PRD (sección 12) se aplican en una dependencia de FastAPI, además de revisar propiedad del recurso en cada módulo.
 - Primer administrador por `ADMIN_EMAIL` y `ADMIN_PASSWORD` al arrancar.
 - Último administrador: validación atómica en transacción. El intento rechazado también queda en bitácora (demo 6).
 - Bitácora inmutable desde la API.
@@ -172,16 +152,12 @@ cuenta como reproducción ni como duplicado.
 
 **Decisiones**
 
-- **Proxy de audio sin escritura a disco (equipo)**, con timeout de 3 s. La redirección a la URL oficial queda como plan B
-  detrás de una variable de entorno.
-- **Atribución (términos, cláusula 4.1):** cada pista de Jamendo muestra artista, crédito a Jamendo, licencia y enlace a su
-  página. Esto va más allá del PRD y es obligatorio.
-- El `client_id` vive solo en `.env`, que se crea localmente con el valor que dio el usuario. En el repo solo hay
-  `.env.example` sin valor.
+- **Proxy de audio sin escritura a disco (equipo)**, con timeout de 3 s. La redirección a la URL oficial queda como plan B detrás de una variable de entorno.
+- **Atribución (términos, cláusula 4.1):** cada pista de Jamendo muestra artista, crédito a Jamendo, licencia y enlace a su página. Esto va más allá del PRD y es obligatorio.
+- El `client_id` vive solo en `.env`, que se crea localmente con el valor que dio el usuario. En el repo solo hay `.env.example` sin valor.
 - Importación por lote del administrador, idempotente por `jamendo_id`, reanudable y con backoff.
 
-**Riesgo abierto:** la URL de audio incluye un parámetro `from` que parece un token. Hay que comprobar si caduca. Si caduca,
-la URL se pide de nuevo al reproducir, en vez de usar la guardada, cuidando la cuota.
+**Riesgo abierto:** la URL de audio incluye un parámetro `from` que parece un token. Hay que comprobar si caduca. Si caduca, la URL se pide de nuevo al reproducir, en vez de usar la guardada, cuidando la cuota.
 
 ## 10. Semilla de demo (equipo)
 
@@ -189,20 +165,16 @@ Comando opcional, separado del arranque normal:
 
 1. Importa unas 2,000 pistas reales de Jamendo, variadas por género.
 2. Genera usuarios ficticios de los tres roles, casetes, playlists y unos 90 días de reproducciones simuladas.
-3. **Genera pistas `local` de Compositores con MP3 sintéticos (constructor):** audio breve generado con `ffmpeg`, que no se
-   versiona. Sin ellas quedarían vacías las gráficas de Compositor y de Jamendo contra local, y no habría audio para la
-   demo 9. Si el equipo tiene MP3 propios, pueden sustituirlos.
+3. **Genera pistas `local` de Compositores con MP3 sintéticos (constructor):** audio breve generado con `ffmpeg`, que no se versiona. Sin ellas quedarían vacías las gráficas de Compositor y de Jamendo contra local, y no habría audio para la demo 9. Si el equipo tiene MP3 propios, pueden sustituirlos.
 
-Todo lo simulado queda marcado como tal en base, para poder distinguirlo y borrarlo. Debe ser idempotente. Debe bastar para
-que las doce gráficas de la sección 10 del PRD carguen en menos de 2 s.
+Todo lo simulado queda marcado como tal en base, para poder distinguirlo y borrarlo. Debe ser idempotente. Debe bastar para que las doce gráficas de la sección 10 del PRD carguen en menos de 2 s.
 
 ## 11. Reglas de producto que el PRD deja abiertas (equipo)
 
 **Invitaciones: solo por enlace**
 
 - No hay búsqueda de personas ni invitación directa. El enlace se comparte fuera de la app.
-- Quien abre un enlace válido con sesión iniciada ve solo el nombre del casete y quién invita. Es una excepción acotada a F4.6:
-  no ve pistas ni dedicatorias hasta unirse.
+- Quien abre un enlace válido con sesión iniciada ve solo el nombre del casete y quién invita. Es una excepción acotada a F4.6: no ve pistas ni dedicatorias hasta unirse.
 - La invitación queda pendiente en su Inicio y en su biblioteca hasta que se una o la descarte.
 - Sin sesión, el enlace lleva a entrar o registrarse, y después vuelve a la invitación.
 
@@ -210,8 +182,7 @@ que las doce gráficas de la sección 10 del PRD carguen en menos de 2 s.
 
 - Se puede seguir a artistas de Jamendo y a Compositores. Los artistas de Jamendo son registros propios en `modules/catalog`.
 - Solo las publicaciones de Compositores generan avisos. Importar de Jamendo no avisa.
-- Inicio muestra también las pistas programadas con su fecha. `modules/catalog` expone título y fecha de publicación de las
-  pistas `scheduled` de los artistas seguidos, sin audio.
+- Inicio muestra también las pistas programadas con su fecha. `modules/catalog` expone título y fecha de publicación de las pistas `scheduled` de los artistas seguidos, sin audio.
 
 **Edición de casetes**
 
@@ -233,27 +204,23 @@ La marca está en `docs/brand/`, con su guía en `docs/brand/README.md`.
 - Títulos en Unbounded 800. Dedicatorias y etiquetas de casete en Caveat. Texto de interfaz en fuente del sistema.
 - Logo: Nota casete.
 
-**Distribución:** biblioteca a la izquierda, contenido al centro, "sonando" a la derecha, reproductor abajo. Solo se toma la
-distribución de Spotify.
+**Distribución:** biblioteca a la izquierda, contenido al centro, "sonando" a la derecha, reproductor abajo. Solo se toma la distribución de Spotify.
 
 **Elementos propios**
 
 - Pila de casetes inclinados entre 2 y 5 grados en lugar de carruseles.
 - Dedicatorias e invitaciones como notas de papel rasgado con cinta adhesiva.
 - Reproductor con dos carretes que giran y cambian de tamaño según el avance. Se detienen con `prefers-reduced-motion`.
-- Casetes con **Lado A y Lado B**: 6 pistas por lado, porque el máximo son 12 **(equipo)**. Si el máximo se configura
-  distinto, cada lado toma la mitad.
+- Casetes con **Lado A y Lado B**: 6 pistas por lado, porque el máximo son 12 **(equipo)**. Si el máximo se configura distinto, cada lado toma la mitad.
 
-**Reproductor:** aleatorio, anterior, reproducir, siguiente, repetir, favorita, agregar a casete, dedicatoria, cola, volumen y
-pantalla completa. **Barra izquierda:** Inicio, Buscar, Tu biblioteca, Estadísticas, Crear casete.
+**Reproductor:** aleatorio, anterior, reproducir, siguiente, repetir, favorita, agregar a casete, dedicatoria, cola, volumen y pantalla completa. **Barra izquierda:** Inicio, Buscar, Tu biblioteca, Estadísticas, Crear casete.
 
 **Inicio:** solo tus casetes, invitaciones, "Seguir escuchando" y lanzamientos de artistas que sigues. Nada de recomendaciones.
 
 **Requisitos**
 
 - SPA: el audio no se interrumpe al navegar.
-- **Adaptable a teléfono (equipo):** en pantalla angosta, los paneles pasan a pestañas abajo y el reproductor se compacta, con
-  las mismas funciones que en escritorio.
+- **Adaptable a teléfono (equipo):** en pantalla angosta, los paneles pasan a pestañas abajo y el reproductor se compacta, con las mismas funciones que en escritorio.
 - Vistas por rol según el token (F7.1). Las doce gráficas de la sección 10 del PRD.
 - Accesibilidad: texto con contraste de al menos 4.5:1, controles con nombre accesible, teclado completo, foco visible.
 - Desorden solo en contenido. Menús, búsqueda y reproductor rectos.
@@ -292,8 +259,7 @@ Cada módulo separa rutas, servicios, modelos, esquemas y `public.py`. Cada carp
 ## 14. Pruebas y verificación
 
 - Desarrollo guiado por pruebas en backend.
-- Las concurrencias críticas se prueban de verdad, con peticiones paralelas contra PostgreSQL: pista 12 del casete, último
-  administrador, reenvío de `playback_id`, doble publicación, reordenamiento simultáneo.
+- Las concurrencias críticas se prueban de verdad, con peticiones paralelas contra PostgreSQL: pista 12 del casete, último administrador, reenvío de `playback_id`, doble publicación, reordenamiento simultáneo.
 - Prueba automática de fronteras entre módulos.
 - Jamendo simulado en pruebas automáticas. Una verificación manual contra el servicio real.
 - Se comprueban en navegador las pantallas principales de cada rol.

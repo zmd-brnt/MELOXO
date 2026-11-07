@@ -1,7 +1,6 @@
 # Planes
 
-Cómo se construye cada diseño, tarea por tarea. Cada plan es el registro de lo que se pidió en su momento: lo que cambió
-durante la construcción está en [`../decisions/`](../decisions/README.md).
+Cómo se construye cada [diseño](../specs/README.md), tarea por tarea. Cada plan registra lo que se pidió en su momento; lo que cambió durante la construcción está en [`docs/decisions/`](../decisions/README.md).
 
 | Archivo | Rama | Qué cubre |
 | --- | --- | --- |

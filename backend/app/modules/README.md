@@ -1,6 +1,6 @@
 # Módulos
 
-Los seis módulos del negocio. Cada uno es dueño de sus tablas y solo se habla con los demás por su `public.py`.
+Los seis módulos de negocio. Cada uno es dueño de sus tablas y solo se comunica con los demás a través de su `public.py`.
 
 | Módulo | Responsabilidad |
 | --- | --- |
@@ -11,4 +11,4 @@ Los seis módulos del negocio. Cada uno es dueño de sus tablas y solo se habla 
 | [`social/`](social/README.md) | Favoritas, seguidos, casetes, invitaciones y avisos |
 | [`analytics/`](analytics/README.md) | Agregados para gráficas, latencia y salud |
 
-Qué significa cada archivo de un módulo está en el [README de la aplicación](../README.md#qué-hay-en-un-módulo).
+La función de cada archivo de un módulo se explica en el [README de la aplicación](../README.md#qué-hay-en-un-módulo). Las pruebas de cada módulo están en [`backend/tests/modules/`](../../tests/modules/README.md).

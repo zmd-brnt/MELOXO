@@ -1,25 +1,27 @@
 # Interfaz web
 
-La app que usa la gente: una SPA con React, Vite y TypeScript. Al ser una sola página, navegar no recarga nada y el audio
-sigue sonando. En producción FastAPI sirve los archivos compilados, así que no hay un servidor aparte. Usa Node 24, la
-misma versión del `Dockerfile`.
+La app que usa la gente: una SPA hecha con React, Vite y TypeScript. Como es una sola página, navegar no recarga nada y el audio sigue sonando. En producción, FastAPI sirve los archivos compilados, así que no hace falta un servidor aparte.
+
+Usa Node 24, la misma versión del [`Dockerfile`](../Dockerfile).
 
 ## Comandos
 
-| Comando | Qué hace |
-|---|---|
-| `npm install` | Instala dependencias |
-| `npm run dev` | Servidor de desarrollo; pasa `/api` a `localhost:8080` |
-| `npm test` | Pruebas con Vitest |
-| `npm run e2e` | Pruebas de navegador con Playwright |
-| `npm run build` | Revisa tipos y compila a `dist/` |
+Todos se corren dentro de `frontend/`:
 
-Para `npm run dev` y `npm run e2e` hace falta el backend arriba: `docker compose up -d` desde la raíz.
+| Comando | Qué hace |
+| --- | --- |
+| `npm install` | Instala las dependencias |
+| `npm run dev` | Inicia el servidor de desarrollo, que redirige `/api` a `localhost:8080` |
+| `npm test` | Corre las pruebas con Vitest |
+| `npm run e2e` | Corre las [pruebas de navegador](e2e/README.md) con Playwright |
+| `npm run build` | Revisa los tipos y compila en `dist/` |
+
+`npm run dev` y `npm run e2e` necesitan el backend en marcha. Para levantarlo, corre `docker compose up -d` desde la raíz del repositorio.
 
 ## Carpetas
 
 | Carpeta | Contenido |
-|---|---|
+| --- | --- |
 | [`e2e/`](e2e/README.md) | Pruebas de navegador |
 | [`public/`](public/README.md) | Favicons y manifiesto |
 | [`src/`](src/README.md) | Código de la interfaz |
@@ -30,4 +32,4 @@ Para `npm run dev` y `npm run e2e` hace falta el backend arriba: `docker compose
 | [`src/components/`](src/components/README.md) | Piezas reutilizables |
 | [`src/pages/`](src/pages/README.md) | Pantallas |
 | [`src/player/`](src/player/README.md) | Reproductor |
-| [`src/styles/`](src/styles/README.md) | Tokens y estilos |
+| [`src/styles/`](src/styles/README.md) | Variables de diseño y estilos |

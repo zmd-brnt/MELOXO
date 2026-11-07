@@ -1,7 +1,6 @@
 # Diseños
 
-Un documento por rama, ya aprobado por el equipo. Dice qué se construye y qué reglas sigue. Si un plan y un diseño se
-contradicen, manda el diseño.
+Un documento por rama, ya aprobado por el equipo, que dice qué se construye y qué reglas sigue. Si un [plan](../plans/README.md) y un diseño se contradicen, manda el diseño.
 
 | Archivo | Rama | Qué cubre |
 | --- | --- | --- |

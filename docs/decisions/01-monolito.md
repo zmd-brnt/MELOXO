@@ -1,7 +1,6 @@
 # Decisiones de 01-monolito
 
-Lo que se decidió durante la construcción sin preguntarlo al equipo, con lo que cuesta si fue un error, y lo que quedó
-pendiente. El diseño está en [`../specs/`](../specs/) y el plan en [`../plans/`](../plans/).
+Lo que se decidió durante la construcción sin preguntarlo al equipo, con lo que cuesta si fue un error, y lo que quedó pendiente. El diseño está en [`../specs/`](../specs/README.md) y el plan en [`../plans/`](../plans/README.md).
 
 ## Decisiones
 

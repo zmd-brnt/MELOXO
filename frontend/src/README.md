@@ -1,12 +1,19 @@
-# src
+# Código de la interfaz
 
-Código de la interfaz en React y TypeScript. Cada carpeta tiene su README.
+Código en React y TypeScript. Cada carpeta tiene su propio README.
 
-- `main.tsx` y `App.tsx`: arranque y rutas.
-- `api/`: cliente HTTP y tipos. `auth/`: sesión y rutas por rol.
-- `pages/`: una vista por ruta. `components/`: piezas compartidas.
-- `player/`: reproductor. `charts/`: gráficas.
-- `styles/`: colores y estilos. `assets/`: logos. Las fuentes se instalan con Fontsource y se cargan en `main.tsx`.
-- `test-setup.ts` y `test-utils.tsx`: base de las pruebas con Vitest.
+| Carpeta o archivo | Contenido |
+| --- | --- |
+| [`main.tsx`](main.tsx) | Arranque de la app y carga de las fuentes, instaladas con Fontsource |
+| [`App.tsx`](App.tsx) | Rutas |
+| [`api/`](api/README.md) | Cliente HTTP y tipos |
+| [`auth/`](auth/README.md) | Sesión y rutas por rol |
+| [`pages/`](pages/README.md) | Una pantalla por ruta |
+| [`components/`](components/README.md) | Piezas compartidas |
+| [`player/`](player/README.md) | Reproductor |
+| [`charts/`](charts/README.md) | Gráficas |
+| [`styles/`](styles/README.md) | Colores y estilos |
+| [`assets/`](assets/README.md) | Logos |
+| [`test-setup.ts`](test-setup.ts), [`test-utils.tsx`](test-utils.tsx) | Base de las pruebas con Vitest |
 
-Las pruebas viven junto a lo que prueban, como `queue.test.ts` al lado de `queue.ts`.
+Las pruebas viven junto a lo que prueban, como [`queue.test.ts`](player/queue.test.ts) al lado de [`queue.ts`](player/queue.ts).
