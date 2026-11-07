@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError, upload } from "../../api/client";
+import { FileDrop } from "../../components/FileDrop";
 
 const MP3_MB = 15;
 const COVER_MB = 2;
@@ -99,28 +100,28 @@ export function TrackForm() {
             {albums.data?.map((album) => <option key={album.id} value={album.id}>{album.title}</option>)}
           </select>
         </label>
-        <label>
-          Archivo MP3
-          <input
-            type="file"
-            accept=".mp3,audio/mpeg"
-            aria-invalid={!!errors.audio}
-            aria-describedby={errors.audio ? "audio-error" : undefined}
-            onChange={(e) => pickAudio(e.target.files?.[0] ?? null)}
-          />
-        </label>
-        {errors.audio ? <span id="audio-error" className="form-error">{errors.audio}</span> : <small>Hasta {MP3_MB} MB y 10 minutos.</small>}
-        <label>
-          Portada (opcional)
-          <input
-            type="file"
-            accept="image/jpeg,image/png"
-            aria-invalid={!!errors.cover}
-            aria-describedby={errors.cover ? "cover-error" : undefined}
-            onChange={(e) => pickCover(e.target.files?.[0] ?? null)}
-          />
-        </label>
-        {errors.cover ? <span id="cover-error" className="form-error">{errors.cover}</span> : <small>JPG o PNG, hasta {COVER_MB} MB.</small>}
+        <FileDrop
+          label="Archivo MP3"
+          prompt="Arrastra tu MP3 aquí"
+          hint={`Hasta ${MP3_MB} MB y 10 minutos`}
+          accept=".mp3,audio/mpeg"
+          file={audio}
+          onPick={pickAudio}
+          invalid={!!errors.audio}
+          describedBy={errors.audio ? "audio-error" : undefined}
+        />
+        {errors.audio && <span id="audio-error" className="form-error">{errors.audio}</span>}
+        <FileDrop
+          label="Portada (opcional)"
+          prompt="Arrastra tu portada aquí"
+          hint={`JPG o PNG, hasta ${COVER_MB} MB`}
+          accept="image/jpeg,image/png"
+          file={cover}
+          onPick={pickCover}
+          invalid={!!errors.cover}
+          describedBy={errors.cover ? "cover-error" : undefined}
+        />
+        {errors.cover && <span id="cover-error" className="form-error">{errors.cover}</span>}
         <label>
           Programar publicación (opcional)
           <input type="datetime-local" value={publishAt} onChange={(e) => setPublishAt(e.target.value)} />

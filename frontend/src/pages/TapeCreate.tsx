@@ -4,19 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { TapeSummary } from "../api/types";
 import { Tape, type TapeColor } from "../components/Tape";
-
-const colors: { id: TapeColor; label: string }[] = [
-  { id: "pink", label: "Rosa" },
-  { id: "yellow", label: "Amarillo" },
-  { id: "teal", label: "Turquesa" },
-  { id: "cobalt", label: "Cobalto" },
-];
+import { TAPE_COLORS, tapeHex } from "../components/tapeColors";
 
 export function TapeCreate() {
   const navigate = useNavigate();
   const client = useQueryClient();
   const [title, setTitle] = useState("");
-  const [color, setColor] = useState<TapeColor>("pink");
+  const [color, setColor] = useState<TapeColor>(TAPE_COLORS[0].value);
   const create = useMutation({
     mutationFn: () => api<TapeSummary>("/api/tapes", { method: "POST", json: { title, color } }),
     onSuccess: (tape) => {
@@ -41,12 +35,25 @@ export function TapeCreate() {
             <input required maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
           <fieldset>
-            <legend>Color</legend>
-            {colors.map((item) => (
-              <label key={item.id}>
-                <input type="radio" name="color" checked={color === item.id} onChange={() => setColor(item.id)} /> {item.label}
-              </label>
-            ))}
+            <legend>Color: {TAPE_COLORS.find((item) => item.value === color)?.label ?? color.toUpperCase()}</legend>
+            <div className="color-shelf">
+              {TAPE_COLORS.map((item) => (
+                <label key={item.value} title={item.label}>
+                  <input
+                    type="radio"
+                    name="color"
+                    aria-label={item.label}
+                    checked={color === item.value}
+                    onChange={() => setColor(item.value)}
+                  />
+                  <Tape title="" color={item.value} className="tape-mini" />
+                </label>
+              ))}
+            </div>
+            <label className="color-free">
+              <input type="color" value={tapeHex(color)} onChange={(e) => setColor(e.target.value)} />
+              Color libre
+            </label>
           </fieldset>
           {create.error instanceof ApiError && <p className="form-error" role="alert">{create.error.message}</p>}
           <button className="primary" type="submit" disabled={create.isPending}>Crear casete</button>

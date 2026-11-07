@@ -43,9 +43,24 @@ La semilla tarda cerca de un minuto y necesita `JAMENDO_CLIENT_ID`. Para borrar 
 
 Con la app en marcha, la documentación interactiva de la API está en <http://localhost:8080/api/docs>. Para apagar todo, usa `docker compose down`; agrega `-v` si además quieres borrar la base de datos y los archivos subidos.
 
+### Probarlo desde una URL fija
+
+Para pruebas fuera de `localhost`, [Tailscale Funnel](https://tailscale.com/kb/1223/funnel) publica la app en una dirección HTTPS fija, con la forma `https://<equipo>.<tailnet>.ts.net`. La app sigue corriendo en tu computadora, así que la URL solo responde si el equipo está prendido y Docker en marcha.
+
+> La URL es pública: cualquiera que la conozca llega a la app. Antes de activarla, cambia las contraseñas de las cuentas de administrador y de demo. Cambiar `.env` no modifica las cuentas que ya existen.
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh   # solo la primera vez
+sudo tailscale up                                  # abre el inicio de sesión en el navegador
+tailscale funnel --bg 8080                         # la primera vez pide habilitar Funnel en un enlace
+tailscale funnel status                            # muestra la URL
+```
+
+Con `--bg`, la publicación sigue activa después de reiniciar el equipo. Para retirarla, usa `tailscale funnel reset`. Funnel tiene límites de ancho de banda y la dirección nueva puede tardar hasta 10 minutos en responder.
+
 ### Cuentas de acceso
 
-Las contraseñas son las que definas en `.env`. El archivo [`.env.example`](.env.example) las deja vacías, así que no hay una contraseña predeterminada. En nuestro entorno local, `ADMIN_PASSWORD` y `DEMO_PASSWORD` valen `meloxo123`.
+Las contraseñas son las que definas en `.env`. El archivo [`.env.example`](.env.example) las deja vacías, así que no hay una contraseña predeterminada.
 
 | Rol | Correos | Contraseña | Qué puede hacer |
 | --- | --- | --- | --- |
@@ -85,6 +100,7 @@ Estas otras tienen un valor por defecto y casi nunca hay que tocarlas. Se define
 | `JAMENDO_API_URL` | `https://api.jamendo.com/v3.0` | API de Jamendo. El escenario 3 la cambia para simular la caída |
 | `MEDIA_DIR` | `/media` | Dónde se guardan el audio y las portadas |
 | `STATIC_DIR` | Vacía | Interfaz compilada. El [`Dockerfile`](Dockerfile) la fija en `/app/static` |
+| `APP_VERSION` | `01-monolito` | Versión que muestra la sección de Salud |
 | `DISABLE_SCHEDULER` | `false` | Apaga las tareas periódicas. Lo usan las pruebas |
 
 ## Estructura del repositorio

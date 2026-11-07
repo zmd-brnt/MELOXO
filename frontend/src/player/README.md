@@ -32,4 +32,4 @@ El elemento `<audio>` no dice por qué falló. Por eso `recoverStream` pide un t
 
 ## Crédito
 
-[`Attribution`](../components/Attribution.tsx) muestra el artista, Jamendo y la licencia, con enlace. La licencia de Jamendo lo exige, así que no lo quites.
+[`Attribution`](../components/Attribution.tsx) muestra el artista y el origen de la pista: `vía Jamendo`, con enlace a su página, o `vía MELOXO`. La licencia no se muestra, pero se conserva en los datos de la pista.

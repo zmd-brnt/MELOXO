@@ -10,7 +10,7 @@ Pantallas bajo `/admin`. Solo las ve el rol Administrador, y el permiso real lo 
 | [`Requests.tsx`](Requests.tsx) | `/admin/requests` | Aprobar o rechazar solicitudes de Compositor. Para rechazar hay que dar un motivo |
 | [`Catalog.tsx`](Catalog.tsx) | `/admin/catalog` | Importar de Jamendo viendo el avance, y ocultar o restaurar pistas |
 | [`Audit.tsx`](Audit.tsx) | `/admin/audit` | Registro de acciones administrativas |
-| [`Health.tsx`](Health.tsx) | `/admin/health` | Estado de cada servicio, con ícono y texto |
+| [`Health.tsx`](Health.tsx) | `/admin/health` | Resumen, estado de cada servicio, tráfico y errores de la última hora, recursos, actividad y datos del sistema |
 | [`shared.tsx`](shared.tsx) | No es una ruta | Filtros en la URL, fechas y paginación |
 
 El backend no permite dejar el sistema sin administradores: esa respuesta `409` se muestra como aviso y la fila no cambia.

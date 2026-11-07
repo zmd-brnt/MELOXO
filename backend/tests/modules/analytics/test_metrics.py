@@ -7,8 +7,10 @@ import pytest
 import respx
 
 from app.core.config import get_settings
+from app.core.db import session_scope
 from app.modules.analytics import latency
 from app.modules.analytics.aggregates import refresh_aggregates
+from app.modules.playback.models import Playback
 
 
 async def post_play(client, user, song, seconds=12):
@@ -315,8 +317,51 @@ async def test_health_with_jamendo_down_is_200(client, admin):
     assert (states["app"], states["jamendo"]) == ("up", "down")
 
 
+@respx.mock
+async def test_health_gives_detail_per_service(client, admin):
+    respx.get(f"{get_settings().JAMENDO_API_URL}/tracks/").mock(
+        return_value=httpx.Response(200, json={"headers": {"status": "success"}, "results": []})
+    )
+    r = await client.get("/api/admin/health", headers=admin.headers)
+    services = {s["name"]: s for s in r.json()["services"]}
+    assert services["app"]["uptime_seconds"] >= 0
+    assert services["database"]["ms"] >= 0
+
+
 async def test_health_needs_admin(client, listener):
     assert (await client.get("/api/admin/health", headers=listener.headers)).status_code == 403
+
+
+async def test_health_system_reports_resources_and_versions(client, admin):
+    body = (await client.get("/api/admin/health/system", headers=admin.headers)).json()
+    assert 0 < body["disk"]["used_bytes"] <= body["disk"]["total_bytes"]
+    assert body["database"]["size_bytes"] > 0
+    assert 0 < body["database"]["connections"] <= body["database"]["max_connections"]
+    assert body["system"]["version"] == get_settings().APP_VERSION
+    assert body["system"]["postgres"].split(".")[0].isdigit()
+    assert body["system"]["python"].startswith("3.")
+    assert body["system"]["started_at"]
+
+
+async def test_health_activity_counts_recent_real_plays(client, admin, listener, make_user, make_song):
+    other, song = await make_user(), await make_song()
+    now = datetime.now(UTC)
+    async with session_scope() as session:
+        session.add_all(
+            [
+                Playback(playback_id=uuid4(), user_id=listener.id, song_id=song.id, listened_seconds=30, started_at=now),
+                Playback(playback_id=uuid4(), user_id=listener.id, song_id=song.id, listened_seconds=30, started_at=now),
+                Playback(playback_id=uuid4(), user_id=other.id, song_id=song.id, listened_seconds=30, started_at=now - timedelta(hours=2)),
+                Playback(playback_id=uuid4(), user_id=other.id, song_id=song.id, listened_seconds=30, started_at=now, is_demo=True),
+            ]
+        )
+    body = (await client.get("/api/admin/health/activity", headers=admin.headers)).json()
+    assert body == {"minutes": 30, "listeners": 1, "plays": 2}
+
+
+@pytest.mark.parametrize("path", ["/api/admin/health/system", "/api/admin/health/activity"])
+async def test_health_details_need_admin(client, listener, path):
+    assert (await client.get(path, headers=listener.headers)).status_code == 403
 
 
 async def test_csv_export(client, admin, listener, make_song):

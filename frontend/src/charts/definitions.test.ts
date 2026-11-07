@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { errorRows, fillDays, fillHours, formatDay, heatmapChart, heatRows, rankChart, shortLabel } from "./definitions";
+import { errorRows, fillDays, moduleRows, trafficRows, fillHours, formatDay, heatmapChart, heatRows, rankChart, shortLabel } from "./definitions";
 
 const today = new Date(2026, 10, 5, 15, 30);
 
@@ -71,4 +71,37 @@ test("las barras por nombre recortan para caber en una tarjeta angosta", () => {
   const ticks = (config.options as { scales: { y: { ticks: { callback: (this: unknown, value: number) => string } } } }).scales.y.ticks;
   const label = ticks.callback.call({ getLabelForValue: () => "Una canción con un nombre bastante largo" }, 0);
   expect(label.length).toBeLessThanOrEqual(19);
+});
+
+test("trafficRows suma módulos por minuto y rellena los minutos vacíos", () => {
+  const now = new Date("2026-11-07T12:10:30Z");
+  const rows = trafficRows(
+    {
+      items: [
+        { minute: "2026-11-07T12:09:00Z", module: "catalog", count: 5, errors: 1 },
+        { minute: "2026-11-07T12:09:00Z", module: "social", count: 2, errors: 0 },
+      ],
+    },
+    3,
+    now,
+  );
+  expect(rows.map((row) => [row.ok, row.errors])).toEqual([[0, 0], [6, 1], [0, 0]]);
+});
+
+test("trafficRows sin métricas no inventa ceros", () => {
+  expect(trafficRows({ items: [] })).toEqual([]);
+});
+
+test("moduleRows resume cada módulo con su peor p95, de más a menos tráfico", () => {
+  const rows = moduleRows({
+    items: [
+      { module: "social", count: 1, errors: 0, p95_ms: 90 },
+      { module: "catalog", count: 3, errors: 1, p95_ms: 20 },
+      { module: "catalog", count: 4, errors: 0, p95_ms: 40 },
+    ],
+  });
+  expect(rows).toEqual([
+    { module: "catalog", count: 7, p95: 40, errors: 1 },
+    { module: "social", count: 1, p95: 90, errors: 0 },
+  ]);
 });

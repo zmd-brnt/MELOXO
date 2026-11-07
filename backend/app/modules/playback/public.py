@@ -1,4 +1,5 @@
 """Interfaz pública de modules.playback. Solo tipos simples; cada función abre su sesión."""
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -9,7 +10,18 @@ from app.modules.playback.schemas import PlaybackEvent, RetentionStats
 from app.modules.playback.service import DUPLICATES
 from app.modules.playback.demo import DEMO_DUPLICATES, DemoPlay, clear_demo_playbacks, insert_demo_playbacks  # noqa: F401
 
-__all__ = ["PlaybackEvent", "RetentionStats", "duplicates_discarded", "events_since", "retention_for_songs", "DemoPlay", "clear_demo_playbacks", "insert_demo_playbacks"]
+__all__ = ["PlaybackEvent", "RetentionStats", "duplicates_discarded", "events_since", "recent_activity", "retention_for_songs", "DemoPlay", "clear_demo_playbacks", "insert_demo_playbacks"]
+
+
+async def recent_activity(minutes: int) -> tuple[int, int]:
+    """Personas y reproducciones reales en la ventana. Un evento llega al terminar de escuchar, no mientras suena."""
+    since = datetime.now(UTC) - timedelta(minutes=minutes)
+    query = select(func.count(func.distinct(Playback.user_id)), func.count()).where(
+        Playback.started_at >= since, Playback.is_demo.is_(False)
+    )
+    async with session_scope() as session:
+        listeners, plays = (await session.execute(query)).one()
+    return listeners, plays
 
 
 async def events_since(cursor: int, limit: int) -> list[PlaybackEvent]:

@@ -6,6 +6,7 @@ import { usePlaylists, useTapes } from "../api/queries";
 import type { Song } from "../api/types";
 import { DedicationEditor } from "./DedicationEditor";
 import { Icon } from "./Icon";
+import { tapeHex } from "./tapeColors";
 
 type Target = { kind: "tape" | "playlist"; id: string; title: string };
 
@@ -75,7 +76,7 @@ function AddSongDialog({ song, onClose }: { song: Song; onClose: () => void }) {
                       disabled={full}
                       onClick={() => setTarget({ kind: "tape", id: tape.id, title: tape.title })}
                     >
-                      <span className={`swatch swatch-${tape.color}`} />
+                      <span className="swatch" style={{ background: tapeHex(tape.color) }} />
                       <b>{tape.title}</b>
                       <small>{full ? "Lleno" : `${tape.track_count} de ${tape.max_tracks}`}</small>
                     </button>

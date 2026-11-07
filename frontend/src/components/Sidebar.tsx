@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useFollows, usePendingInvites, usePlaylists, useTapes } from "../api/queries";
 import { Icon } from "./Icon";
+import { tapeHex } from "./tapeColors";
 
 type Tab = "tapes" | "playlists" | "artists";
 
@@ -18,7 +19,7 @@ function Tapes() {
     <>
       {tapes.data?.map((tape) => (
         <Link className="lib-row" key={tape.id} to={`/tapes/${tape.id}`}>
-          <span className={`swatch swatch-${tape.color}`} />
+          <span className="swatch" style={{ background: tapeHex(tape.color) }} />
           <span>
             <b>{tape.title}</b>
             <small>{tape.track_count} de {tape.max_tracks} · {tape.member_count === 1 ? "1 persona" : `${tape.member_count} personas`}</small>

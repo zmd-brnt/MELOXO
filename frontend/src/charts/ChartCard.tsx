@@ -25,6 +25,8 @@ type Props = {
   tall?: boolean;
   /** Alto según los datos, para que las barras no se aplasten con muchas filas. */
   height?: (rows: Row[]) => number;
+  /** Cada cuántos milisegundos vuelve a pedir los datos. Sin él, se piden una vez. */
+  refresh?: number;
 };
 
 const defaultRows = (body: { items?: Row[] }) => body.items ?? [];
@@ -35,12 +37,12 @@ function cell(column: Column, row: Row): string {
 }
 
 /** Una gráfica que falla no tumba la página (F7.3), y siempre hay tabla como alternativa. */
-export function ChartCard({ title, subtitle, url, columns, rows = defaultRows as never, chart, stat, report, note, tall, height }: Props) {
+export function ChartCard({ title, subtitle, url, columns, rows = defaultRows as never, chart, stat, report, note, tall, height, refresh }: Props) {
   const [showTable, setShowTable] = useState(false);
   const instance = useRef<Chart | null>(null);
   const [, redraw] = useState(0);
   const [exportFailed, setExportFailed] = useState(false);
-  const query = useQuery({ queryKey: ["metric", url], queryFn: () => api<unknown>(url) });
+  const query = useQuery({ queryKey: ["metric", url], queryFn: () => api<unknown>(url), refetchInterval: refresh });
   const data = useMemo(() => (query.data ? rows(query.data as never) : []), [query.data, rows]);
   const config = useMemo(() => (chart && data.length ? chart(data) : null), [chart, data]);
   const keep = useCallback((created: Chart | null) => {

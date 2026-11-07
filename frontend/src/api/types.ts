@@ -31,7 +31,7 @@ export type Song = {
 export type TapeSummary = {
   id: string;
   title: string;
-  color: "pink" | "yellow" | "teal" | "cobalt";
+  color: string;
   is_creator: boolean;
   member_count: number;
   track_count: number;

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useAddSong } from "../components/AddSong";
@@ -340,6 +340,8 @@ function CompactBar() {
 function WideBar() {
   const { current } = usePlayer();
   const [full, setFull] = useState(false);
+  // Estable: el reproductor renderiza cada segundo y FullScreen sale de pantalla completa si cambia.
+  const closeFull = useCallback(() => setFull(false), []);
 
   return (
     <div className="bar">
@@ -375,7 +377,7 @@ function WideBar() {
         </button>
       </div>
       <Notice />
-      {full && <FullScreen onClose={() => setFull(false)} />}
+      {full && <FullScreen onClose={closeFull} />}
     </div>
   );
 }

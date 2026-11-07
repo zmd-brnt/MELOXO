@@ -1,14 +1,18 @@
 """Consultas de las gráficas. Los datos del Compositor son agregados: nunca llevan identidades."""
+import platform
+import shutil
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import extract, func, select
+from sqlalchemy import extract, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.modules.analytics.models import PlaysHourly, RequestMetric, UserPlays
 from app.modules.catalog.public import get_artists, get_songs
 
 UNAVAILABLE = "No disponible"
+STARTED_AT = datetime.now(UTC)
 
 
 def _since(days: int) -> datetime:
@@ -86,3 +90,44 @@ async def latency(session: AsyncSession, minutes: int) -> list[dict]:
         }
         for r in (await session.execute(query)).scalars()
     ]
+
+
+def uptime_seconds() -> int:
+    return int((datetime.now(UTC) - STARTED_AT).total_seconds())
+
+
+def _disk() -> dict | None:
+    try:
+        usage = shutil.disk_usage(get_settings().MEDIA_DIR)
+    except OSError:
+        return None
+    return {"used_bytes": usage.used, "total_bytes": usage.total}
+
+
+async def system_status(session: AsyncSession) -> dict:
+    database = (
+        await session.execute(
+            text(
+                """
+                SELECT pg_database_size(current_database()) AS size_bytes,
+                       (SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()) AS connections,
+                       current_setting('max_connections')::int AS max_connections,
+                       current_setting('server_version') AS postgres
+                """
+            )
+        )
+    ).one()
+    return {
+        "disk": _disk(),
+        "database": {
+            "size_bytes": database.size_bytes,
+            "connections": database.connections,
+            "max_connections": database.max_connections,
+        },
+        "system": {
+            "version": get_settings().APP_VERSION,
+            "started_at": STARTED_AT,
+            "python": platform.python_version(),
+            "postgres": database.postgres.split()[0],
+        },
+    }

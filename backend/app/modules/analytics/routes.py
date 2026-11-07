@@ -1,6 +1,7 @@
 import csv
 import dataclasses
 import io
+import time
 from typing import Literal
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -21,7 +22,7 @@ from app.modules.catalog.public import (
     release_counts,
     songs_owned_by,
 )
-from app.modules.playback.public import duplicates_discarded, retention_for_songs
+from app.modules.playback.public import duplicates_discarded, recent_activity, retention_for_songs
 from app.modules.playlists.public import count_inclusions
 from app.modules.social.public import count_tape_inclusions, tape_activity
 from app.modules.users.public import user_growth
@@ -33,6 +34,7 @@ is_composer = require_role("composer")
 
 Days = Query(30, ge=1, le=366)
 MAX_LAG_SECONDS = 30
+ACTIVITY_MINUTES = 30
 
 
 def _forbidden() -> AppError:
@@ -161,18 +163,35 @@ async def inclusions(user: CurrentUser = Depends(is_composer)):
 
 @router.get("/admin/health")
 async def health(_: CurrentUser = Depends(is_admin), session: AsyncSession = Depends(get_session)):
+    database = {"name": "database", "status": "down"}
     try:
+        started = time.perf_counter()
         await session.execute(text("SELECT 1"))
         await session.commit()
-        database = "up"
+        database = {"name": "database", "status": "up", "ms": round((time.perf_counter() - started) * 1000, 1)}
     except Exception:
-        database = "down"
-    aggregates = "down"
-    if database == "up":
+        pass
+    aggregates = {"name": "aggregates", "status": "down"}
+    if database["status"] == "up":
         lag = await lag_seconds()
-        aggregates = "up" if lag is None or lag < MAX_LAG_SECONDS else "delayed"
-    services = {"app": "up", "database": database, "jamendo": await jamendo_status(), "aggregates": aggregates}
-    return {"services": [{"name": name, "status": status} for name, status in services.items()]}
+        aggregates = {
+            "name": "aggregates",
+            "status": "up" if lag is None or lag < MAX_LAG_SECONDS else "delayed",
+            "lag_seconds": lag,
+        }
+    app = {"name": "app", "status": "up", "uptime_seconds": service.uptime_seconds()}
+    return {"services": [app, database, {"name": "jamendo", "status": await jamendo_status()}, aggregates]}
+
+
+@router.get("/admin/health/system")
+async def health_system(_: CurrentUser = Depends(is_admin), session: AsyncSession = Depends(get_session)):
+    return await service.system_status(session)
+
+
+@router.get("/admin/health/activity")
+async def health_activity(_: CurrentUser = Depends(is_admin)):
+    listeners, plays = await recent_activity(ACTIVITY_MINUTES)
+    return {"minutes": ACTIVITY_MINUTES, "listeners": listeners, "plays": plays}
 
 
 def _safe_cell(value: object) -> object:

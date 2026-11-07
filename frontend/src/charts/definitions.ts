@@ -347,3 +347,66 @@ export const errorColumns: Column[] = [
   { key: "label", label: "Módulo" },
   { key: "count", label: "Errores" },
 ];
+
+const MINUTE_MS = 60_000;
+
+/** Una fila por minuto de la ventana, con ceros: las métricas solo existen para los minutos con peticiones. */
+export function trafficRows(body: { items: Row[] }, minutes = 60, now = new Date()): Row[] {
+  if (!body.items.length) return [];
+  const totals = new Map<number, { ok: number; errors: number }>();
+  for (const item of body.items) {
+    const minute = new Date(item.minute as string).getTime();
+    const total = totals.get(minute) ?? { ok: 0, errors: 0 };
+    total.ok += (item.count as number) - (item.errors as number);
+    total.errors += item.errors as number;
+    totals.set(minute, total);
+  }
+  const last = Math.floor(now.getTime() / MINUTE_MS) * MINUTE_MS;
+  return Array.from({ length: minutes }, (_, index) => {
+    const minute = last - (minutes - 1 - index) * MINUTE_MS;
+    return { minute: new Date(minute).toISOString(), ...(totals.get(minute) ?? { ok: 0, errors: 0 }) };
+  });
+}
+
+export const trafficColumns: Column[] = [
+  { key: "minute", label: "Minuto", format: formatMinute as never },
+  { key: "ok", label: "Correctas" },
+  { key: "errors", label: "Con error" },
+];
+
+export function trafficChart(rows: Row[]): ChartConfiguration {
+  const series = trafficColumns.slice(1);
+  return {
+    type: "bar",
+    data: {
+      labels: rows.map((r) => formatMinute(r.minute as string)),
+      datasets: series.map((s, index) => ({
+        label: s.label,
+        data: rows.map((r) => r[s.key] as number),
+        ...barStyle(SERIES[index]),
+      })),
+    },
+    options: {
+      ...baseOptions(2),
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 24 } },
+        y: { stacked: true, beginAtZero: true, title: { display: true, text: "Peticiones por minuto" } },
+      },
+    },
+  };
+}
+
+/** El p95 de una hora no se puede sacar de los p95 por minuto, así que se muestra el peor minuto. */
+export function moduleRows(body: { items: Row[] }): { module: string; count: number; p95: number; errors: number }[] {
+  const totals = new Map<string, { module: string; count: number; p95: number; errors: number }>();
+  for (const item of body.items) {
+    const module = String(item.module);
+    const total = totals.get(module) ?? { module, count: 0, p95: 0, errors: 0 };
+    total.count += item.count as number;
+    total.errors += item.errors as number;
+    total.p95 = Math.max(total.p95, item.p95_ms as number);
+    totals.set(module, total);
+  }
+  return [...totals.values()].sort((a, b) => b.count - a.count);
+}

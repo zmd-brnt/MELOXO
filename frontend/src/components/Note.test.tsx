@@ -18,5 +18,5 @@ test("la nota lleva cinta solo si se pide", () => {
 test("el casete expone su título y color", () => {
   const { container } = render(<Tape title="Viaje" color="teal" />);
   expect(screen.getByText("Viaje")).toBeInTheDocument();
-  expect(container.firstChild).toHaveClass("tape-teal");
+  expect(container.firstChild).toHaveStyle({ "--shell": "#00d1be" });
 });

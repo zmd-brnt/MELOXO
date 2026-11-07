@@ -69,6 +69,18 @@ async def test_unknown_color_422(client, listener):
     assert r.status_code == 422
 
 
+async def test_hex_color_is_saved(client, listener):
+    r = await client.post("/api/tapes", json={"title": "x", "color": "#1a2B3c"}, headers=listener.headers)
+    assert r.status_code == 201
+    assert r.json()["color"] == "#1a2B3c"
+
+
+@pytest.mark.parametrize("color", ["#12345", "#1234567", "#12345g", "123456"])
+async def test_malformed_hex_color_422(client, listener, color):
+    r = await client.post("/api/tapes", json={"title": "x", "color": color}, headers=listener.headers)
+    assert r.status_code == 422
+
+
 async def test_non_member_403(client, listener, make_user, make_song):
     other, song = await make_user(), await make_song()
     tape = await make_tape(client, listener)

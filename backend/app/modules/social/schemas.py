@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
-TapeColor = Literal["pink", "yellow", "teal", "cobalt"]
+TapeColor = Annotated[str, StringConstraints(pattern=r"^(pink|yellow|teal|cobalt|#[0-9a-fA-F]{6})$")]
 
 
 class TapeIn(BaseModel):

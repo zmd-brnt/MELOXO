@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { api, ApiError, upload } from "../../api/client";
 import type { Artist } from "../../api/types";
 import { LINK_FIELDS } from "../../components/ArtistLinks";
+import { FileDrop } from "../../components/FileDrop";
 
 const KEY = ["composer-profile"];
 
@@ -17,15 +18,18 @@ function Photo({ url, name }: { url: string | null; name: string }) {
     onSuccess: () => void client.invalidateQueries({ queryKey: KEY }),
   });
 
-  function choose(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) send.mutate(file);
-  }
-
   return (
     <div className="stack-form">
       {url && <img className="artist-photo" src={url} alt={`Foto de ${name}`} />}
-      <label>Foto<input type="file" accept="image/jpeg,image/png" disabled={send.isPending} onChange={choose} /></label>
+      <FileDrop
+        label="Foto"
+        prompt="Arrastra tu foto aquí"
+        hint="JPG o PNG"
+        accept="image/jpeg,image/png"
+        file={null}
+        onPick={(file) => file && send.mutate(file)}
+        disabled={send.isPending}
+      />
       {send.isSuccess && <p className="muted" role="status">Foto guardada.</p>}
       {send.isError && (
         <p className="form-error" role="alert">

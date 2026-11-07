@@ -1,11 +1,17 @@
-export type TapeColor = "pink" | "yellow" | "teal" | "cobalt";
+import type { CSSProperties } from "react";
+import { tapeHex } from "./tapeColors";
+
+export type TapeColor = string;
 
 type Props = { title: string; color?: TapeColor; tilt?: number; className?: string };
 
 export function Tape({ title, color = "pink", tilt, className = "" }: Props) {
-  const style = tilt === undefined ? undefined : { transform: `rotate(${tilt}deg)` };
+  const style = {
+    "--shell": tapeHex(color),
+    ...(tilt === undefined ? {} : { transform: `rotate(${tilt}deg)` }),
+  } as CSSProperties;
   return (
-    <div className={`tape tape-${color} ${className}`.trim()} style={style}>
+    <div className={`tape ${className}`.trim()} style={style}>
       <svg viewBox="0 0 320 204" aria-hidden="true">
         <rect x="2" y="2" width="316" height="200" rx="12" fill="var(--shell)" stroke="#000" strokeOpacity=".35" strokeWidth="2" />
         <rect x="22" y="18" width="276" height="122" rx="6" fill="#FFFDF7" />

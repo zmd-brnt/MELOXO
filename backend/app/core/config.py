@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     JAMENDO_CLIENT_ID: str = ""
     JAMENDO_API_URL: str = "https://api.jamendo.com/v3.0"
     JAMENDO_AUDIO_MODE: str = "proxy"
+    APP_VERSION: str = "01-monolito"
     DISABLE_SCHEDULER: bool = False
     MEDIA_DIR: str = "/media"
     STATIC_DIR: str = ""
