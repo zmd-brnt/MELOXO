@@ -13,7 +13,7 @@ Cuentas, roles, solicitudes de Compositor y auditoría. Sus pruebas están en [`
 - **Access token:** JWT HS256 de 15 minutos con `sub`, `role` y `exp`.
 - **Refresh token:** valor opaco de 30 días, guardado como hash y renovado en cada uso.
 - **Rol y estado:** se consultan en la base de datos en cada petición, así que una suspensión aplica de inmediato. En la rama 03, esto pasa a una lista de revocación en Redis.
-- **Primer administrador:** se crea al arrancar con `ADMIN_EMAIL` y `ADMIN_PASSWORD`.
+- **Primer administrador:** se crea al arrancar con `ADMIN_EMAIL` y `ADMIN_PASSWORD`, solo si todavía no hay ninguno. Cambiar esas variables después no modifica la cuenta.
 - **Límite de inicio de sesión:** 5 fallos en 60 s por correo e IP, contados en la memoria de cada proceso.
 
 ## Último administrador

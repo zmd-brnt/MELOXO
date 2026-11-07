@@ -13,7 +13,7 @@ Ese `all` se puede cambiar por cualquiera de estos subcomandos:
 | Subcomando | Qué hace |
 | --- | --- |
 | `all` | Ejecuta `catalog` y después `activity` |
-| `catalog` | Importa unas 2,000 pistas de Jamendo. Si ya se importaron, no vuelve a pedirlas |
+| `catalog` | Importa 200 pistas por género, 2,000 en total. Una pista puede llegar en varios géneros, así que quedan menos: 1,789 únicas en la [corrida registrada](../../docs/decisions/01-monolito.md). Si ya se importaron, no vuelve a pedirlas |
 | `activity` | Borra lo simulado y lo crea de nuevo: cuentas, pistas locales, casetes, playlists y 90 días de reproducciones |
 | `clear` | Borra todo lo simulado y los tonos generados. Las pistas de Jamendo y los usuarios reales se conservan |
 

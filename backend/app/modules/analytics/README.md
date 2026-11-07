@@ -26,4 +26,4 @@ El Compositor ve agregados, sin identidades. Cada oyente ve únicamente sus prop
 
 ## CSV
 
-`GET /api/admin/reports/{name}.csv` exporta las gráficas de administración. Los valores que empiezan con `=`, `+`, `-` o `@` llevan un apóstrofo delante para que una hoja de cálculo no los ejecute como fórmula.
+`GET /api/admin/reports/{name}.csv` exporta las gráficas de administración. Los valores que empiezan con `=`, `+`, `-`, `@`, tabulador o retorno de carro llevan un apóstrofo delante para que una hoja de cálculo no los ejecute como fórmula.

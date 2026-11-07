@@ -54,7 +54,7 @@ Sobre fondo claro, prefiere la versión en tinta.
 
 - **Títulos:** Unbounded, peso 800. Licencia SIL Open Font.
 - **Dedicatorias y etiquetas de casete:** Caveat, peso 600. Licencia SIL Open Font.
-- **Texto e interfaz:** fuente del sistema (`-apple-system, "Segoe UI", Roboto, sans-serif`).
+- **Texto e interfaz:** fuente del sistema (`-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif`), definida en [`tokens.css`](../../frontend/src/styles/tokens.css).
 
 La palabra MELOXO del logo está dibujada a medida. No la escribas con una fuente: usa los [archivos SVG](svg/README.md).
 

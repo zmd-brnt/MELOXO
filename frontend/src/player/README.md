@@ -27,6 +27,8 @@ El elemento `<audio>` no dice por qué falló. Por eso `recoverStream` pide un t
 | El byte llega | El ticket había vencido: retoma en la misma posición |
 | `503` | Avisa que Jamendo no responde y pasa a la siguiente pista |
 | Sin red | Se detiene, para no saltarse toda la cola |
+| Otro error al probar el byte | Avisa que no pudo reproducir la pista y pasa a la siguiente |
+| Error al pedir el ticket, con red | Avisa que la pista ya no está disponible y pasa a la siguiente |
 
 ## Crédito
 

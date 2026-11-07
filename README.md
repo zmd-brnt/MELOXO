@@ -54,7 +54,7 @@ Las contraseñas son las que definas en `.env`. El archivo [`.env.example`](.env
 | **Compositor** | De `compositor00@demo.meloxo.dev`<br>a `compositor09@demo.meloxo.dev` | `DEMO_PASSWORD` | Subir temas propios y portadas, y ver sus métricas de artista |
 | **Oyente** | De `oyente00@demo.meloxo.dev`<br>a `oyente59@demo.meloxo.dev` | `DEMO_PASSWORD` | Crear y escuchar casetes compartidos, playlists y favoritos |
 
-El primer administrador se crea al arrancar la app. Las cuentas `@demo.meloxo.dev` solo existen después de correr la semilla.
+El primer administrador se crea al arrancar la app, solo si todavía no hay ninguno. Por eso, cambiar `ADMIN_EMAIL` o `ADMIN_PASSWORD` después no modifica esa cuenta. Las cuentas `@demo.meloxo.dev` solo existen después de correr la semilla.
 
 > Si `DEMO_PASSWORD` está vacía al correr la semilla, se genera una contraseña al azar y se imprime en la terminal al terminar.
 
@@ -67,7 +67,7 @@ Estas van en `.env`:
 | `POSTGRES_PASSWORD` | Contraseña de PostgreSQL |
 | `DATABASE_URL` | Conexión desde fuera de Docker, para correr las migraciones a mano. Dentro de Docker, Compose la reemplaza |
 | `JWT_SECRET` | Firma de las sesiones |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Primer administrador, creado al arrancar |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Primer administrador, creado al arrancar si todavía no hay ninguno |
 | `DEMO_PASSWORD` | Contraseña de las cuentas de demo. Si está vacía, se genera una al azar |
 | `JAMENDO_CLIENT_ID` | Llave de Jamendo. Va solo en `.env`, nunca en archivos versionados |
 | `JAMENDO_AUDIO_MODE` | `proxy` (por defecto) o `redirect` |
@@ -131,7 +131,7 @@ Cada carpeta tiene su README, y [`test_readmes.py`](backend/tests/test_readmes.p
 
 ## Módulos
 
-Cada módulo es dueño de sus tablas, no hay llaves foráneas entre módulos y solo se comunican a través de su `public.py`. [`test_boundaries.py`](backend/tests/test_boundaries.py) lo comprueba.
+Cada módulo es dueño de sus tablas, no hay llaves foráneas entre módulos y solo se comunican a través de su `public.py`. [`test_boundaries.py`](backend/tests/test_boundaries.py) comprueba las importaciones entre módulos; las llaves foráneas no las revisa ninguna prueba.
 
 | Módulo | Responsabilidad |
 | --- | --- |
